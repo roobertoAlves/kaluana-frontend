@@ -1,0 +1,53 @@
+.viewport {
+  position: fixed;
+  bottom: calc(var(--space-5) + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - var(--space-8));
+  max-width: var(--max-width-screen);
+  z-index: 100;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.root {
+  background: var(--danger);
+  color: var(--bg-surface);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+  font-weight: 600;
+}
+
+.root[data-state="open"] {
+  animation: slideIn 0.2s ease-out;
+}
+
+.root[data-state="closed"] {
+  animation: fadeOut 0.15s ease-in;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.description {
+  margin: 0;
+}
