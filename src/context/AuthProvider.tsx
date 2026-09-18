@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 import { AuthContext } from "./AuthContext";
 import type { AuthContextValue } from "./AuthContext";
+import type { AuthenticatedUser } from "../types";
 
 function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthenticatedUser | null>(null);

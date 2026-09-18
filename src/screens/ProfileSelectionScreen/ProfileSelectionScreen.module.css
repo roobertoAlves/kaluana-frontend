@@ -1,0 +1,41 @@
+.optionCard {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  width: 100%;
+  text-align: left;
+  padding: var(--space-5);
+  background: var(--bg-surface);
+  border: 2px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.optionCard:hover {
+  border-color: var(--accent);
+}
+
+.optionCard:active {
+  transform: scale(0.99);
+}
+
+.optionCard > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.optionTitle {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--text-primary);
+}
+
+.optionDescription {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
