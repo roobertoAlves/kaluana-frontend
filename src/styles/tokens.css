@@ -1,0 +1,55 @@
+:root {
+  /* Paleta principal (terrosa) */
+  --color-ink: #1f3556;
+  --color-ink-soft: #234e70;
+  --color-ember: #c95d2b;
+  --color-ember-bright: #e9782d;
+  --color-ember-light: #f39a4a;
+  --color-sage: #7a9e7e;
+  --color-sage-bright: #7daa84;
+  --color-sand: #b8b0a5;
+  --color-cream: #f6f1ea;
+  --color-paper: #fff9f2;
+
+  /* Paleta "sinal" */
+  --color-signal-blue: #3e7bce;
+  --color-signal-yellow: #f2c94c;
+  --color-signal-red: #e85a4f;
+  --color-signal-orange: #e9782d;
+
+  --bg-page: var(--color-paper);
+  --bg-surface: #ffffff;
+  --bg-muted: var(--color-cream);
+  --text-primary: var(--color-ink);
+  --text-secondary: var(--color-ink-soft);
+  --text-muted: var(--color-sand);
+  --border-subtle: color-mix(in srgb, var(--color-sand) 45%, transparent);
+  --focus-ring: var(--color-signal-blue);
+  --danger: var(--color-signal-red);
+  --success: var(--color-sage-bright);
+
+  --accent: var(--color-ember-bright);
+  --accent-strong: var(--color-ember);
+  --accent-soft: var(--color-ember-light);
+
+  --font-display: "Fredoka", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", system-ui, sans-serif;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+
+  --shadow-soft: 0 8px 24px -12px
+    color-mix(in srgb, var(--color-ink) 35%, transparent);
+  --max-width-screen: 480px;
+}
