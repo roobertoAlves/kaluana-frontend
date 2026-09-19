@@ -32,7 +32,10 @@
   --accent-strong: var(--color-ember);
   --accent-soft: var(--color-ember-light);
 
-  --font-display: "Fredoka", system-ui, sans-serif;
+  /* TIPOGRAFIA ATUALIZADA PARA ATLAS DE SINAIS */
+  /* Títulos: Space Grotesk (estilo geométrico/editorial) */
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+  /* Corpo: Atkinson Hyperlegible (manter legibilidade) */
   --font-body: "Atkinson Hyperlegible", system-ui, sans-serif;
 
   --space-1: 4px;
@@ -44,12 +47,13 @@
   --space-7: 48px;
   --space-8: 64px;
 
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 22px;
-  --radius-pill: 999px;
+  /* REDUZINDO RADIUS PARA ESTILO "RECORTES DUROS" (Sair do pill/rounded) */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius-pill: 4px;
 
-  --shadow-soft: 0 8px 24px -12px
+  --shadow-soft: 0 4px 12px -8px
     color-mix(in srgb, var(--color-ink) 35%, transparent);
   --max-width-screen: 480px;
 }

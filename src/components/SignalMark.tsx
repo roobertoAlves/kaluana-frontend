@@ -1,35 +1,35 @@
 type SignalMarkProps = {
   size?: number;
-  active?: boolean;
   className?: string;
 };
 
-export function SignalMark({
-  size = 20,
-  active = true,
-  className,
-}: SignalMarkProps) {
+export function SignalMark({ size = 56, className }: SignalMarkProps) {
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
+    <div
       className={className}
-      aria-hidden="true"
-      focusable="false"
+      style={{
+        width: size,
+        height: size,
+        transform: "rotate(45deg)",
+        overflow: "hidden",
+        border: "2px solid var(--color-ember-bright)",
+        flexShrink: 0,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "var(--color-paper)",
+      }}
     >
-      <rect
-        x="3"
-        y="3"
-        width="18"
-        height="18"
-        rx="4"
-        transform="rotate(45 12 12)"
-        fill={active ? "var(--accent)" : "none"}
-        stroke="var(--accent)"
-        strokeWidth="2"
+      <img
+        src="/Assets/logo.png"
+        alt="Kaluana Logo"
+        style={{
+          width: size * 0.85,
+          height: size * 0.85,
+          objectFit: "contain",
+          transform: "rotate(-45deg)",
+        }}
       />
-      {active && <circle cx="12" cy="12" r="2.5" fill="var(--bg-surface)" />}
-    </svg>
+    </div>
   );
 }
