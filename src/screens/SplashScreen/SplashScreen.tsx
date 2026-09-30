@@ -1,28 +1,43 @@
-import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { SignalMark } from '../../components/SignalMark'
-import styles from './SplashScreen.module.css'
+import { useCallback } from 'react'
+import { Pressable, StyleSheet } from 'react-native'
+import { VideoView } from 'expo-video'
+import type { NativeStackScreenProps } from '@react-navigation/native-stack'
+import type { RootStackParamList } from '../../navigation/types'
+import { useSplashVideo } from '../../hooks/useSplashVideo'
 
-const AUTO_ADVANCE_MS = 1800
+type Props = NativeStackScreenProps<RootStackParamList, 'Splash'>
 
-export function SplashScreen() {
-  const navigate = useNavigate()
+const VIDEO_BACKGROUND = '#DFDACF'
 
-  useEffect(() => {
-    const timer = setTimeout(() => navigate('/selecionar-perfil'), AUTO_ADVANCE_MS)
-    return () => clearTimeout(timer)
-  }, [navigate])
+/**
+ * Splash padrão, usada em todas as aberturas depois da primeira. Toca o
+ * vídeo uma vez, com som, e segue para a escolha de perfil quando termina
+ * (ou ao toque).
+ */
+export function SplashScreen({ navigation }: Props) {
+  const goNext = useCallback(() => navigation.replace('ProfileSelection'), [navigation])
+  const { player, finish } = useSplashVideo(require('../../../assets/splash/splashscreen.mp4'), goNext)
 
   return (
-    <button
-      type="button"
-      className={styles.wrapper}
-      onClick={() => navigate('/selecionar-perfil')}
-      aria-label="Toque para continuar"
+    <Pressable
+      style={styles.wrapper}
+      onPress={finish}
+      accessibilityRole="button"
+      accessibilityLabel="Toque para continuar"
     >
-      <SignalMark size={64} />
-      <h1 className={styles.title}>Atlas de Sinais</h1>
-      <p className={styles.subtitle}>Um passo de cada vez.</p>
-    </button>
+      <VideoView
+        style={StyleSheet.absoluteFill}
+        player={player}
+        contentFit="contain"
+        nativeControls={false}
+      />
+    </Pressable>
   )
 }
+
+const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+    backgroundColor: VIDEO_BACKGROUND,
+  },
+})

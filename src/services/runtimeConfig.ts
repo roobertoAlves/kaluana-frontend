@@ -1,53 +1,83 @@
-const STORAGE_KEY = "kaluana:api-base-url-override";
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
-function getApiBaseUrl(): string {
-  const override = readOverride();
-  if (override) return override;
+const STORAGE_KEY = 'kaluana:api-base-url-override'
 
-  return import.meta.env.VITE_API_BASE_URL;
+/**
+ * Porte de src/services/runtimeConfig.ts do projeto web. Diferença
+ * importante: localStorage é síncrono, AsyncStorage não é. Para manter
+ * getApiBaseUrl() síncrono (chamado em todo request da API), o valor
+ * fica em cache numa variável de módulo, carregado uma vez no início do
+ * app (ver initRuntimeConfig, chamado em App.tsx) e atualizado a cada
+ * set. Enquanto o cache não foi hidratado, getApiBaseUrl() usa o valor
+ * de build — a troca salva no app anterior só passa a valer depois que
+ * initRuntimeConfig() resolver, uma única vez por abertura do app.
+ */
+
+let cachedOverride: string | null = null
+let hydrated = false
+
+export async function initRuntimeConfig(): Promise<void> {
+  try {
+    cachedOverride = await AsyncStorage.getItem(STORAGE_KEY)
+  } catch {
+    cachedOverride = null
+  } finally {
+    hydrated = true
+  }
 }
 
-function setApiBaseUrlOverride(url: string | null): void {
+export function getApiBaseUrl(): string {
+  if (cachedOverride) return cachedOverride
+
+  const url = process.env.EXPO_PUBLIC_API_BASE_URL
+  if (!url) {
+    if (__DEV__) {
+      console.warn('EXPO_PUBLIC_API_BASE_URL não definida. Usando localhost.')
+    }
+    return 'http://localhost:8080'
+  }
+  return url
+}
+
+export async function setApiBaseUrlOverride(url: string | null): Promise<void> {
+  const trimmed = url && url.trim() ? url.trim() : null
+  cachedOverride = trimmed
+
   try {
-    if (url && url.trim()) {
-      window.localStorage.setItem(STORAGE_KEY, url.trim());
+    if (trimmed) {
+      await AsyncStorage.setItem(STORAGE_KEY, trimmed)
     } else {
-      window.localStorage.removeItem(STORAGE_KEY);
+      await AsyncStorage.removeItem(STORAGE_KEY)
     }
   } catch {
-    // localStorage indisponível (modo privado, WebView restrito etc.):
-    // a troca simplesmente não persiste, sem quebrar o app.
+    // Storage indisponível: a troca vale só para a sessão atual do app,
+    // em memória, sem persistir para a próxima abertura.
   }
 }
 
-function getApiBaseUrlOverride(): string | null {
-  return readOverride();
+export function getApiBaseUrlOverride(): string | null {
+  return cachedOverride
 }
 
-function readOverride(): string | null {
-  try {
-    return window.localStorage.getItem(STORAGE_KEY);
-  } catch {
-    return null;
-  }
+export function isRuntimeConfigHydrated(): boolean {
+  return hydrated
 }
 
+// Hook de depuração: no Metro/Hermes debugger, rode
+// `global.kaluanaConfig.setApiBaseUrlOverride('https://homolog.kaluana.com.br')`
+// para trocar de ambiente sem gerar um novo build.
 declare global {
-  interface Window {
-    kaluanaConfig?: {
-      getApiBaseUrl: typeof getApiBaseUrl;
-      setApiBaseUrlOverride: typeof setApiBaseUrlOverride;
-      getApiBaseUrlOverride: typeof getApiBaseUrlOverride;
-    };
-  }
+  var kaluanaConfig:
+    | {
+        getApiBaseUrl: typeof getApiBaseUrl
+        setApiBaseUrlOverride: typeof setApiBaseUrlOverride
+        getApiBaseUrlOverride: typeof getApiBaseUrlOverride
+      }
+    | undefined
 }
 
-if (typeof window !== "undefined") {
-  window.kaluanaConfig = {
-    getApiBaseUrl,
-    setApiBaseUrlOverride,
-    getApiBaseUrlOverride,
-  };
+;(globalThis as typeof globalThis & { kaluanaConfig?: unknown }).kaluanaConfig = {
+  getApiBaseUrl,
+  setApiBaseUrlOverride,
+  getApiBaseUrlOverride,
 }
-
-export { getApiBaseUrl, getApiBaseUrlOverride, setApiBaseUrlOverride };
