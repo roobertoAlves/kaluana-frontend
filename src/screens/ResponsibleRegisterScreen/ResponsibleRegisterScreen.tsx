@@ -1,13 +1,17 @@
 import { useState } from 'react'
-import type { FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { SignalMark } from '../../components/SignalMark'
+import { StyleSheet, Text, View } from 'react-native'
+import type { NativeStackScreenProps } from '@react-navigation/native-stack'
+import type { RootStackParamList } from '../../navigation/types'
+import { SidebarScreen } from '../../components/ui/SidebarScreen'
+import { BackButton } from '../../components/ui/BackButton'
+import { AuthFooterLinks, AuthHero, AuthSubtitle } from '../../components/ui/AuthHero'
 import { CoordinateField } from '../../components/ui/CoordinateField'
 import { ArrowButton } from '../../components/ui/ArrowButton'
-import { ErrorToast } from '../../components/ErrorToast'
 import { useAuth } from '../../context/AuthContext'
 import { validateCode, registerResponsible, ApiError } from '../../services/api'
-import styles from './ResponsibleRegisterScreen.module.css'
+import { colors, fonts } from '../../styles/tokens'
+
+type Props = NativeStackScreenProps<RootStackParamList, 'ResponsibleRegister'>
 
 type Step = 'code' | 'register'
 
@@ -17,8 +21,7 @@ interface RegisterForm {
   password: string
 }
 
-export function ResponsibleRegisterScreen() {
-  const navigate = useNavigate()
+export function ResponsibleRegisterScreen({ navigation }: Props) {
   const { setSession } = useAuth()
 
   const [step, setStep] = useState<Step>('code')
@@ -31,13 +34,13 @@ export function ResponsibleRegisterScreen() {
   const [formError, setFormError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
-  async function handleValidateCode(event: FormEvent) {
-    event.preventDefault()
+  async function handleValidateCode() {
     setCodeError(null)
     if (code.trim().length < 4) {
       setCodeError('Digite o código enviado pela pessoa principal.')
       return
     }
+
     setValidating(true)
     try {
       const result = await validateCode({ code: code.trim() })
@@ -54,9 +57,22 @@ export function ResponsibleRegisterScreen() {
     setForm((prev) => ({ ...prev, [field]: value }))
   }
 
-  async function handleSubmitRegister(event: FormEvent) {
-    event.preventDefault()
+  function validateForm(): string | null {
+    if (form.name.trim().length < 2) return 'Informe seu nome.'
+    if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) return 'Informe um e-mail válido.'
+    if (form.password.length < 8) return 'A senha precisa ter pelo menos 8 caracteres.'
+    return null
+  }
+
+  async function handleSubmitRegister() {
     setFormError(null)
+
+    const validationError = validateForm()
+    if (validationError) {
+      setFormError(validationError)
+      return
+    }
+
     setSubmitting(true)
     try {
       const auth = await registerResponsible({
@@ -66,7 +82,7 @@ export function ResponsibleRegisterScreen() {
         code: code.trim(),
       })
       setSession(auth)
-      navigate('/inicio')
+      navigation.reset({ index: 0, routes: [{ name: 'Home' }] })
     } catch (error) {
       setFormError(error instanceof ApiError ? error.message : 'Erro inesperado. Tente novamente.')
     } finally {
@@ -75,110 +91,115 @@ export function ResponsibleRegisterScreen() {
   }
 
   return (
-    <div className={styles.screen}>
-      <div className={styles.sidebar} />
-      <span className={styles.sidebarLabel}>{step === 'code' ? 'CÓDIGO' : 'NOVA CONTA'}</span>
+    <SidebarScreen
+      label={step === 'code' ? 'CÓDIGO' : 'NOVA CONTA'}
+      paddingTop={100}
+      paddingBottom={48}
+      toastMessage={formError}
+      onDismissToast={() => setFormError(null)}
+    >
+      <BackButton onPress={() => navigation.navigate('ProfileSelection')} />
 
-      <div className={styles.content}>
-        <span className={`${styles.corner} ${styles.cornerTR}`}>+</span>
-        <span className={`${styles.corner} ${styles.cornerBR}`}>+</span>
+      {step === 'code' ? (
+        <>
+          <AuthHero title={'sou\nresponsável\npor alguém.'} maxTitleWidth={220} marginBottom={28} />
 
-        <button
-          type="button"
-          className={styles.backBtn}
-          onClick={() => navigate('/selecionar-perfil')}
-        >
-          ← VOLTAR
-        </button>
+          <AuthSubtitle>
+            {'A pessoa que você acompanha gerou um código\nno app dela. Use-o para se conectar.'}
+          </AuthSubtitle>
 
-        {step === 'code' ? (
-          <>
-            <div className={styles.hero}>
-              <div className={styles.seal}>
-                <SignalMark size={64} />
-              </div>
-              <h1 className={styles.heroTitle}>
-                sou<br />responsável<br />por alguém.
-              </h1>
-            </div>
+          <View style={styles.form}>
+            <CoordinateField
+              onDark
+              coordinate="A1"
+              label="CÓDIGO"
+              placeholder="Ex.: 7F3K9A"
+              autoCapitalize="characters"
+              value={code}
+              onChangeText={(v) => setCode(v.toUpperCase())}
+            />
+            {codeError && (
+              <Text style={styles.codeError} accessibilityRole="alert">
+                {codeError}
+              </Text>
+            )}
+            <ArrowButton
+              label={validating ? 'VERIFICANDO...' : 'USAR CÓDIGO'}
+              loading={validating}
+              onPress={handleValidateCode}
+            />
+          </View>
 
-            <p className={styles.subtitle}>
-              A pessoa que você acompanha gerou um código<br />
-              no app dela. Use-o para se conectar.
-            </p>
+          <AuthFooterLinks />
+        </>
+      ) : (
+        <>
+          <AuthHero title={'vamos\nte conhecer\nmelhor.'} maxTitleWidth={220} marginBottom={28} />
 
-            <form className={styles.form} onSubmit={handleValidateCode} noValidate>
-              <CoordinateField
-                coordinate="A1"
-                label="CÓDIGO"
-                placeholder="Ex.: 7F3K9A"
-                value={code}
-                onChange={(v) => setCode(v.toUpperCase())}
-              />
-              {codeError && (
-                <span style={{ color: 'var(--danger)', fontSize: '0.85rem', marginTop: -12 }}>
-                  {codeError}
-                </span>
-              )}
-              <ArrowButton
-                label={validating ? 'VERIFICANDO...' : 'USAR CÓDIGO'}
-                variant="primary"
-              />
-            </form>
+          <AuthSubtitle>
+            {'Só o necessário para começar.\nVocê vai se conectar com '}
+            <Text style={styles.bold}>{mainPersonName}</Text>.
+          </AuthSubtitle>
 
-            <div className={styles.footerLinks}>termos / privacidade</div>
-          </>
-        ) : (
-          <>
-            <div className={styles.hero}>
-              <div className={styles.seal}>
-                <SignalMark size={64} />
-              </div>
-              <h1 className={styles.heroTitle}>
-                vamos<br />te conhecer<br />melhor.
-              </h1>
-            </div>
+          <View style={styles.form}>
+            <CoordinateField
+              onDark
+              coordinate="A1"
+              label="NOME"
+              placeholder="como prefere ser chamado(a)?"
+              autoComplete="name"
+              value={form.name}
+              onChangeText={(v) => update('name', v)}
+            />
+            <CoordinateField
+              onDark
+              coordinate="B2"
+              label="E-MAIL"
+              placeholder="voce@exemplo.com"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+              value={form.email}
+              onChangeText={(v) => update('email', v)}
+            />
+            <CoordinateField
+              onDark
+              coordinate="C3"
+              label="SENHA"
+              placeholder="mínimo de 8 caracteres"
+              secureTextEntry
+              autoComplete="password-new"
+              value={form.password}
+              onChangeText={(v) => update('password', v)}
+            />
+            <ArrowButton
+              label={submitting ? 'CRIANDO...' : 'CRIAR CONTA'}
+              loading={submitting}
+              onPress={handleSubmitRegister}
+            />
+          </View>
 
-            <p className={styles.subtitle}>
-              Só o necessário para começar.<br />
-              Você vai se conectar com <strong>{mainPersonName}</strong>.
-            </p>
-
-            <form className={styles.form} onSubmit={handleSubmitRegister} noValidate>
-              <CoordinateField
-                coordinate="A1"
-                label="NOME"
-                placeholder="como prefere ser chamado(a)?"
-                value={form.name}
-                onChange={(v) => update('name', v)}
-              />
-              <CoordinateField
-                coordinate="B2"
-                label="E-MAIL"
-                placeholder="voce@exemplo.com"
-                type="email"
-                value={form.email}
-                onChange={(v) => update('email', v)}
-              />
-              <CoordinateField
-                coordinate="C3"
-                label="SENHA"
-                placeholder="mínimo de 8 caracteres"
-                type="password"
-                value={form.password}
-                onChange={(v) => update('password', v)}
-              />
-              <ArrowButton
-                label={submitting ? 'CRIANDO...' : 'CRIAR CONTA'}
-                variant="primary"
-              />
-            </form>
-
-            <div className={styles.footerLinks}>termos / privacidade</div>
-            <ErrorToast message={formError} onOpenChange={(open) => !open && setFormError(null)} />
-          </>
-        )}
-      </div>
-    </div>
+          <AuthFooterLinks />
+        </>
+      )}
+    </SidebarScreen>
   )
 }
+
+const styles = StyleSheet.create({
+  form: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  codeError: {
+    fontFamily: fonts.body,
+    fontSize: 13.6,
+    color: colors.danger,
+    alignSelf: 'flex-start',
+    marginTop: -12,
+    marginBottom: 16,
+  },
+  bold: {
+    fontFamily: fonts.bodyBold,
+  },
+})

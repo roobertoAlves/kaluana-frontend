@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "Atlas de Sinais",
+    "slug": "atlas-sinais-mobile",
+    "scheme": "atlasdesinais",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "bundleIdentifier": "br.edu.ifsp.kaluana.app",
+      "supportsTablet": false
+    },
+    "android": {
+      "package": "br.edu.ifsp.kaluana.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#F6F1EA",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": ["expo-video", "expo-font"]
+  }
+}
