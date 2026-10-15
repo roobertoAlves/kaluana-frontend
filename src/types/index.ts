@@ -32,6 +32,11 @@ export interface ValidateCodeResponse {
   mainPersonName: string
 }
 
+export interface GenerateCodeResponse {
+  code: string
+  expiresAt: string
+}
+
 export interface RegisterResponsiblePayload {
   name: string
   email: string

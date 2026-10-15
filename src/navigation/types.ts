@@ -5,6 +5,7 @@ export type RootStackParamList = {
   Login: undefined
   PrimaryRegister: undefined
   ResponsibleRegister: undefined
+  LoginSuccess: undefined
   Home: undefined
   Profile: undefined
   Settings: undefined

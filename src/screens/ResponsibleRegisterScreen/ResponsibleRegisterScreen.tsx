@@ -82,7 +82,7 @@ export function ResponsibleRegisterScreen({ navigation }: Props) {
         code: code.trim(),
       })
       setSession(auth)
-      navigation.reset({ index: 0, routes: [{ name: 'Home' }] })
+      navigation.reset({ index: 0, routes: [{ name: 'LoginSuccess' }] })
     } catch (error) {
       setFormError(error instanceof ApiError ? error.message : 'Erro inesperado. Tente novamente.')
     } finally {
