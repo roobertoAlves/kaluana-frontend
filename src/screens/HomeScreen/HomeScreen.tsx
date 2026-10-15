@@ -1,28 +1,32 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { BottomMenu } from '../../components/BottomMenu/BottomMenu'
-import { colors, fonts } from '../../styles/tokens'
+import type { RootStackParamList } from '../../navigation/types'
+import { BottomMenu } from '../../components/ui/BottomMenu'
+import { useAuth } from '../../context/AuthContext'
+import { colors, fonts, spacing } from '../../styles/tokens'
+
+type Props = NativeStackScreenProps<RootStackParamList, 'Home'>
 
 const CARDS = [
-  { title: 'Meu Progresso', text: 'Acompanhe sua evolução.' },
+  { title: 'Progresso', text: 'Acompanhe sua evolução.' },
   { title: 'Exercícios', text: 'Acesse suas atividades.' },
   { title: 'Mensagens', text: 'Fale com seu terapeuta.' },
   { title: 'Dicas', text: 'Leia conteúdos úteis.' },
 ]
 
-export function HomeScreen() {
+export function HomeScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets()
+  const { user } = useAuth()
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={[styles.scroll, { paddingTop: 20 + insets.top }]}>
+      <ScrollView contentContainerStyle={[styles.scroll, { paddingTop: spacing[5] + insets.top }]}>
         <View style={styles.content}>
-          <View style={styles.header}>
-            <Text accessibilityRole="header" style={styles.headerTitle}>
-              Bem-vindo ao Kaluana
-            </Text>
-            <Text style={styles.headerText}>Sua jornada começa aqui.</Text>
-          </View>
+          <Text style={styles.label}>KALUANA · INÍCIO</Text>
+          <Text accessibilityRole="header" style={styles.title}>
+            {'olá,\n'}{user?.name?.split(' ')[0] ?? ''}.
+          </Text>
 
           <View style={styles.grid}>
             {CARDS.map((card) => (
@@ -34,7 +38,13 @@ export function HomeScreen() {
           </View>
         </View>
       </ScrollView>
-      <BottomMenu />
+      <BottomMenu
+        active="inicio"
+        onNavigate={(tab) => {
+          if (tab === 'perfil') navigation.navigate('Profile')
+          if (tab === 'configuracoes') navigation.navigate('Settings')
+        }}
+      />
     </View>
   )
 }
@@ -42,63 +52,53 @@ export function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.homeBackground,
+    backgroundColor: colors.bgPage,
   },
   scroll: {
-    padding: 20,
-    paddingBottom: 24,
+    padding: spacing[5],
+    paddingBottom: spacing[5],
   },
   content: {
     width: '100%',
-    maxWidth: 600,
+    maxWidth: 480,
     alignSelf: 'center',
   },
-  header: {
-    marginBottom: 30,
-    alignItems: 'center',
+  label: {
+    fontFamily: fonts.displayMedium,
+    fontSize: 11,
+    letterSpacing: 1.4,
+    color: colors.emberBright,
+    marginBottom: spacing[2],
   },
-  headerTitle: {
+  title: {
     fontFamily: fonts.display,
-    fontSize: 24,
-    color: colors.homeText,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  headerText: {
-    fontFamily: fonts.body,
-    fontSize: 16,
-    color: colors.homeTextMuted,
-    textAlign: 'center',
+    fontSize: 40,
+    lineHeight: 42,
+    color: colors.ink,
+    marginBottom: spacing[6],
   },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    rowGap: 16,
+    gap: spacing[3],
   },
   card: {
-    width: '48%',
-    backgroundColor: colors.white,
-    padding: 20,
-    borderRadius: 16,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
+    width: '47%',
+    backgroundColor: colors.bgSurface,
+    padding: spacing[4],
+    borderRadius: 2,
+    borderLeftWidth: 2,
+    borderLeftColor: colors.emberBright,
   },
   cardTitle: {
     fontFamily: fonts.display,
-    fontSize: 18,
-    color: colors.homeText,
-    marginBottom: 8,
-    textAlign: 'center',
+    fontSize: 15,
+    color: colors.ink,
+    marginBottom: 4,
   },
   cardText: {
     fontFamily: fonts.body,
-    fontSize: 14,
-    color: colors.homeTextMuted,
-    textAlign: 'center',
+    fontSize: 13,
+    color: colors.textSecondary,
   },
 })

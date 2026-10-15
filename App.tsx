@@ -28,6 +28,7 @@ import { ProfileSelectionScreen } from './src/screens/ProfileSelectionScreen/Pro
 import { LoginScreen } from './src/screens/LoginScreen/LoginScreen'
 import { PrimaryRegisterScreen } from './src/screens/PrimaryRegisterScreen/PrimaryRegisterScreen'
 import { ResponsibleRegisterScreen } from './src/screens/ResponsibleRegisterScreen/ResponsibleRegisterScreen'
+import { LoginSuccessScreen } from './src/screens/LoginSuccessScreen/LoginSuccessScreen'
 import { HomeScreen } from './src/screens/HomeScreen/HomeScreen'
 import { ProfileScreen } from './src/screens/ProfileScreen/ProfileScreen'
 import { SettingsScreen } from './src/screens/SettingsScreen/SettingsScreen'
@@ -83,6 +84,7 @@ export default function App() {
               <Stack.Screen name="Login" component={LoginScreen} />
               <Stack.Screen name="PrimaryRegister" component={PrimaryRegisterScreen} />
               <Stack.Screen name="ResponsibleRegister" component={ResponsibleRegisterScreen} />
+              <Stack.Screen name="LoginSuccess" component={LoginSuccessScreen} />
               <Stack.Screen name="Home" component={HomeScreen} />
               <Stack.Screen name="Profile" component={ProfileScreen} />
               <Stack.Screen name="Settings" component={SettingsScreen} />

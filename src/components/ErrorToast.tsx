@@ -24,6 +24,9 @@ export function ErrorToast({ message, onDismiss, duration = 6000 }: ErrorToastPr
 
     AccessibilityInfo.announceForAccessibility(message)
 
+    translateY.setValue(80)
+    opacity.setValue(0)
+
     Animated.parallel([
       Animated.timing(translateY, { toValue: 0, duration: 200, useNativeDriver: true }),
       Animated.timing(opacity, { toValue: 1, duration: 200, useNativeDriver: true }),
