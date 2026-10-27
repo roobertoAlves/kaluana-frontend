@@ -1,0 +1,93 @@
+/**
+ * Sessão do temporizador (T1 a T3). Funções puras: o tempo entra como `now`
+ * (ms), então dá para testar sem relógio real. Prazo absoluto (`endsAt`),
+ * assim fechar o app não perde a contagem.
+ * Sem pontuação nem julgamento: a sessão só registra que terminou.
+ */
+export type TimerStatus = 'RUNNING' | 'PAUSED' | 'DONE' | 'CANCELED'
+
+export interface TimerSession {
+  id: string
+  task: string
+  totalMs: number
+  steps: string[]
+  water: boolean
+  startedAt: number
+  status: TimerStatus
+  endsAt: number | null
+  remainingMs: number | null
+  finishedAt: number | null
+}
+
+export const STEP_COLORS = ['#3E7BCE', '#F2C94C', '#7DAA84', '#E9782D'] as const
+export const MINUTE = 60_000
+
+export function startTimer(id: string, task: string, minutes: number, steps: string[], water: boolean, now: number): TimerSession {
+  const totalMs = Math.max(1, Math.round(minutes)) * MINUTE
+  return {
+    id,
+    task: task.trim() || 'Sessão',
+    totalMs,
+    steps: steps.map((s) => s.trim()).filter(Boolean).slice(0, 4),
+    water,
+    startedAt: now,
+    status: 'RUNNING',
+    endsAt: now + totalMs,
+    remainingMs: null,
+    finishedAt: null,
+  }
+}
+
+export function remainingMs(s: TimerSession, now: number): number {
+  if (s.status === 'RUNNING' && s.endsAt !== null) return Math.max(0, s.endsAt - now)
+  if (s.status === 'PAUSED' && s.remainingMs !== null) return s.remainingMs
+  return 0
+}
+
+/** Conclui a sessão se o prazo venceu (também ao reabrir o app). */
+export function reevaluateTimer(s: TimerSession, now: number): TimerSession {
+  if (s.status === 'RUNNING' && s.endsAt !== null && s.endsAt <= now) {
+    return { ...s, status: 'DONE', finishedAt: s.endsAt, endsAt: null }
+  }
+  return s
+}
+
+export function pauseTimer(s: TimerSession, now: number): TimerSession {
+  if (s.status !== 'RUNNING') return s
+  return { ...s, status: 'PAUSED', remainingMs: remainingMs(s, now), endsAt: null }
+}
+
+export function resumeTimer(s: TimerSession, now: number): TimerSession {
+  if (s.status !== 'PAUSED' || s.remainingMs === null) return s
+  return { ...s, status: 'RUNNING', endsAt: now + s.remainingMs, remainingMs: null }
+}
+
+export function addMinute(s: TimerSession, now: number): TimerSession {
+  if (s.status === 'RUNNING' && s.endsAt !== null) return { ...s, endsAt: s.endsAt + MINUTE, totalMs: s.totalMs + MINUTE }
+  if (s.status === 'PAUSED' && s.remainingMs !== null) return { ...s, remainingMs: s.remainingMs + MINUTE, totalMs: s.totalMs + MINUTE }
+  return s
+}
+
+export function cancelTimer(s: TimerSession, now: number): TimerSession {
+  if (s.status === 'DONE' || s.status === 'CANCELED') return s
+  return { ...s, status: 'CANCELED', endsAt: null, remainingMs: null, finishedAt: now }
+}
+
+/** Fração concluída, de 0 a 1. */
+export function progress(s: TimerSession, now: number): number {
+  if (s.status === 'DONE') return 1
+  return Math.min(1, Math.max(0, 1 - remainingMs(s, now) / s.totalMs))
+}
+
+/** Etapa atual: o tempo total é dividido igualmente entre as etapas. */
+export function currentStep(s: TimerSession, now: number): number {
+  if (s.steps.length === 0) return -1
+  return Math.min(s.steps.length - 1, Math.floor(progress(s, now) * s.steps.length))
+}
+
+export function formatClock(ms: number): string {
+  const total = Math.ceil(ms / 1000)
+  const m = Math.floor(total / 60)
+  const sec = total % 60
+  return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`
+}
