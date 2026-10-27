@@ -9,4 +9,15 @@ export type RootStackParamList = {
   Home: undefined
   Profile: undefined
   Settings: undefined
+  EventLog: undefined
+  Reminders: { preset?: string } | undefined
+  CheckIn: undefined
+  Contacts: undefined
+  Guide: undefined
+  Report: undefined
+  EditProfile: undefined
+  TimerPlan: { preset?: { task: string; minutes: number; steps?: string[] } } | undefined
+  Timer: undefined
+  TimerDone: undefined
+  ReminderAlert: { title: string; reminderId?: string }
 }
