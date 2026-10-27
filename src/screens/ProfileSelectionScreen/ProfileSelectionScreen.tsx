@@ -39,7 +39,7 @@ export function ProfileSelectionScreen({ navigation }: Props) {
 
   return (
     <View style={styles.root}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView bounces={false} overScrollMode="never" contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.screen}>
           <DotGrid />
           <CornerMarks />
