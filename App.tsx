@@ -3,7 +3,7 @@ import { StatusBar } from 'expo-status-bar'
 import * as SplashScreenModule from 'expo-splash-screen'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
-import { NavigationContainer } from '@react-navigation/native'
+import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import {
   useFonts as useSpaceGrotesk,
@@ -32,12 +32,34 @@ import { LoginSuccessScreen } from './src/screens/LoginSuccessScreen/LoginSucces
 import { HomeScreen } from './src/screens/HomeScreen/HomeScreen'
 import { ProfileScreen } from './src/screens/ProfileScreen/ProfileScreen'
 import { SettingsScreen } from './src/screens/SettingsScreen/SettingsScreen'
+import { EventLogScreen } from './src/screens/EventLogScreen/EventLogScreen'
+import { RemindersScreen } from './src/screens/RemindersScreen/RemindersScreen'
+import { CheckInScreen } from './src/screens/CheckInScreen/CheckInScreen'
+import { ContactsScreen } from './src/screens/ContactsScreen/ContactsScreen'
+import { GuideScreen } from './src/screens/GuideScreen/GuideScreen'
+import { ReportScreen } from './src/screens/ReportScreen/ReportScreen'
+import { EditProfileScreen } from './src/screens/EditProfileScreen/EditProfileScreen'
+import { TimerPlanScreen } from './src/screens/TimerPlanScreen/TimerPlanScreen'
+import { TimerScreen } from './src/screens/TimerScreen/TimerScreen'
+import { TimerDoneScreen } from './src/screens/TimerDoneScreen/TimerDoneScreen'
+import { ReminderAlertScreen } from './src/screens/ReminderAlertScreen/ReminderAlertScreen'
+import { TimerProvider } from './src/context/TimerContext'
+import { getInitialTap, listenNotificationTaps } from './src/services/notifications'
+import type { NotificationTap } from './src/services/notifications'
 
 SplashScreenModule.preventAutoHideAsync().catch(() => {
   // Se isso falhar (chamado duas vezes, por exemplo), não é fatal.
 })
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
+const navRef = createNavigationContainerRef<RootStackParamList>()
+
+/** Toque em notificação: lembrete abre a tela L2; fim de sessão abre o temporizador. */
+function openFromTap(t: NotificationTap) {
+  if (!navRef.isReady()) return
+  if (t.kind === 'session') navRef.navigate('TimerDone')
+  else navRef.navigate('ReminderAlert', { title: t.title, reminderId: t.reminderId })
+}
 
 export default function App() {
   const [configReady, setConfigReady] = useState(false)
@@ -56,6 +78,11 @@ export default function App() {
     Promise.all([initRuntimeConfig(), hasSeenIntro().then(setIntroSeen)]).finally(() => setConfigReady(true))
   }, [])
 
+  useEffect(() => {
+    const off = listenNotificationTaps(openFromTap)
+    return off
+  }, [])
+
   const appReady = configReady && spaceGroteskLoaded && atkinsonLoaded
 
   const onLayoutRootView = useCallback(() => {
@@ -72,10 +99,17 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }} onLayout={onLayoutRootView}>
       <SafeAreaProvider>
         <AuthProvider>
-          <NavigationContainer>
+          <TimerProvider>
+          <NavigationContainer
+            ref={navRef}
+            onReady={() => {
+              // App aberto a partir de uma notificação com o app fechado.
+              void getInitialTap().then((t) => t && openFromTap(t))
+            }}
+          >
             <StatusBar style="dark" />
             <Stack.Navigator
-              initialRouteName={introSeen ? 'Splash' : 'SplashIF'}
+              initialRouteName={process.env.EXPO_PUBLIC_DEV_HOME === '1' ? 'Home' : introSeen ? 'Splash' : 'SplashIF'}
               screenOptions={{ headerShown: false, animation: 'fade' }}
             >
               <Stack.Screen name="SplashIF" component={SplashIFScreen} />
@@ -88,8 +122,20 @@ export default function App() {
               <Stack.Screen name="Home" component={HomeScreen} />
               <Stack.Screen name="Profile" component={ProfileScreen} />
               <Stack.Screen name="Settings" component={SettingsScreen} />
+              <Stack.Screen name="EventLog" component={EventLogScreen} />
+              <Stack.Screen name="Reminders" component={RemindersScreen} />
+              <Stack.Screen name="CheckIn" component={CheckInScreen} />
+              <Stack.Screen name="Contacts" component={ContactsScreen} />
+              <Stack.Screen name="Guide" component={GuideScreen} />
+              <Stack.Screen name="Report" component={ReportScreen} />
+              <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+              <Stack.Screen name="TimerPlan" component={TimerPlanScreen} />
+              <Stack.Screen name="Timer" component={TimerScreen} />
+              <Stack.Screen name="TimerDone" component={TimerDoneScreen} />
+              <Stack.Screen name="ReminderAlert" component={ReminderAlertScreen} />
             </Stack.Navigator>
           </NavigationContainer>
+          </TimerProvider>
         </AuthProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
