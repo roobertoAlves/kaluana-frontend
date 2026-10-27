@@ -10,6 +10,9 @@ import { CornerMarks } from './CornerMarks'
 import { ErrorToast } from '../ErrorToast'
 import { colors, maxWidthScreen } from '../../styles/tokens'
 
+/** Margem do topo: o primeiro elemento ("← VOLTAR") começa logo abaixo da barra de status. */
+const TOP_MARGIN = 28
+
 interface SidebarScreenProps {
   /** Texto vertical no canto inferior esquerdo (ex.: "ACESSO"). */
   label: string
@@ -40,7 +43,7 @@ export function SidebarScreen({
     <KeyboardAvoidingView style={styles.root} behavior="padding">
       {/* O relógio da barra de status cai sobre a faixa azul. */}
       {isFocused && <StatusBar style="light" />}
-      <ScrollView
+      <ScrollView bounces={false} overScrollMode="never"
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -53,7 +56,7 @@ export function SidebarScreen({
           <View
             style={[
               styles.content,
-              { paddingTop: paddingTop + insets.top, paddingBottom: paddingBottom + insets.bottom },
+              { paddingTop: Math.min(paddingTop, TOP_MARGIN) + insets.top, paddingBottom: paddingBottom + insets.bottom },
             ]}
           >
             {children}
