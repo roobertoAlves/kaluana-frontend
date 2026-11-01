@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Alert, StyleSheet, Text, TextInput, View } from 'react-native'
+import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import type { RootStackParamList } from '../../navigation/types'
 import type { Task, TaskPriority } from '../../types/domain'
@@ -146,6 +146,12 @@ export function TasksScreen({ navigation }: Props) {
 
       <View style={styles.headerRow}>
         <Text style={formStyles.sectionTitle}>PENDENTES ({pending.length})</Text>
+        {pending.length > 0 && (
+          <Pressable onPress={() => navigation.navigate('DayPlan')} accessibilityRole="button" hitSlop={8} style={styles.planLink}>
+            <Icon name="calendar" size={18} />
+            <Text style={styles.planLinkText}>Planejar o dia</Text>
+          </Pressable>
+        )}
       </View>
 
       {!tasks.loading && pending.length === 0 && (
@@ -170,5 +176,7 @@ const styles = StyleSheet.create({
   addInput: { flex: 1, minHeight: 52, borderWidth: 1.5, borderColor: colors.ink, borderRadius: radius.md, paddingHorizontal: spacing[4], fontFamily: fonts.body, fontSize: 17, color: colors.ink, backgroundColor: colors.bgSurface },
   addButton: { width: 52, height: 52, borderRadius: radius.md, backgroundColor: colors.emberBright, alignItems: 'center', justifyContent: 'center' },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  planLink: { flexDirection: 'row', alignItems: 'center', gap: spacing[1], minHeight: 44, marginTop: spacing[3] },
+  planLinkText: { fontFamily: fonts.bodyBold, fontSize: 14, color: colors.ink, textDecorationLine: 'underline' },
   empty: { borderWidth: 1, borderStyle: 'dashed', borderColor: colors.sand, borderRadius: radius.lg, padding: spacing[4] },
 })
