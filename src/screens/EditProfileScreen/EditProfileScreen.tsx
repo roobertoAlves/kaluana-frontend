@@ -17,7 +17,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'EditProfile'>
 /** 3.2 · editar perfil: avatar, nome, apelido e preferências. */
 export function EditProfileScreen({ navigation }: Props) {
   const { user } = useAuth()
-  const { value: profile, update, loaded } = useProfile()
+  const { value: profile, update, loaded, error } = useProfile()
   const [name, setName] = useState('')
   const [nickname, setNickname] = useState('')
   const [color, setColor] = useState<string>(AVATAR_COLORS[0])
@@ -31,12 +31,12 @@ export function EditProfileScreen({ navigation }: Props) {
   }, [loaded])
 
   async function save() {
-    await update({ ...profile, displayName: name.trim(), nickname: nickname.trim(), avatarColor: color })
-    navigation.goBack()
+    const displayName = name.trim() || user?.name || ''
+    if (await update({ ...profile, displayName, nickname: nickname.trim(), avatarColor: color })) navigation.goBack()
   }
 
   return (
-    <Screen label="KALUANA · PERFIL" title="Editar perfil" onBack={() => navigation.goBack()}>
+    <Screen label="KALUANA · PERFIL" title="Editar perfil" onBack={() => navigation.goBack()} error={error}>
       <View style={{ alignItems: 'center', marginBottom: spacing[4] }}>
         <Avatar name={name || user?.name || ''} color={color} size={104} />
         <SmallButton label="ALTERAR FOTO (EM BREVE)" onPress={() => Alert.alert('Em breve', 'A troca de foto ainda não está disponível. Por enquanto, escolha uma cor.')} />
@@ -68,7 +68,7 @@ export function EditProfileScreen({ navigation }: Props) {
       <View style={{ marginTop: spacing[5] }}>
         <ArrowButton label="Salvar alterações" onPress={save} />
       </View>
-      <Text style={[formStyles.muted, { fontSize: 12, marginTop: spacing[3] }]}>As alterações ficam salvas neste aparelho.</Text>
+      <Text style={[formStyles.muted, { fontSize: 12, marginTop: spacing[3] }]}>{user ? 'As alterações ficam salvas na sua conta.' : 'As alterações ficam salvas neste aparelho.'}</Text>
     </Screen>
   )
 }
