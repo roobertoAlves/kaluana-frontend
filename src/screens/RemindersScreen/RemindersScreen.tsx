@@ -8,6 +8,7 @@ import { ArrowButton } from '../../components/ui/ArrowButton'
 import { Card, ChipGroup, Field, SmallButton, formStyles } from '../../components/ui/forms'
 import { useCollection } from '../../hooks/useCollection'
 import { newId } from '../../services/storage'
+import { remindersSource } from '../../services/remindersApi'
 import { cancelReminder, ensureNotificationSetup, rescheduleAll, scheduleReminder } from '../../services/notifications'
 import { colors } from '../../styles/tokens'
 
@@ -29,7 +30,7 @@ const FREQ_LABEL = Object.fromEntries(FREQS.map((f) => [f.value, f.label.toLower
 
 /** RF2: lembretes recorrentes (antecedência, frequência, insistência). */
 export function RemindersScreen({ navigation, route }: Props) {
-  const { items, upsert, remove, loading } = useCollection<Reminder>('reminders')
+  const { items, upsert, remove, loading, error: apiError } = useCollection<Reminder>(remindersSource)
   const [editing, setEditing] = useState<Reminder | null>(null)
   const [title, setTitle] = useState('')
   const [time, setTime] = useState('')
@@ -66,13 +67,15 @@ export function RemindersScreen({ navigation, route }: Props) {
   }
 
   async function apply(r: Reminder) {
-    await upsert(r)
+    // Agenda com o lembrete devolvido pela API: ao criar, o id passa a ser o do servidor.
+    const saved = await upsert(r)
+    if (!saved) return
     try {
-      if (r.enabled && !(await ensureNotificationSetup())) {
+      if (saved.enabled && !(await ensureNotificationSetup())) {
         Alert.alert('Notificações desligadas', 'Ative as notificações do Kaluanã nas configurações do aparelho para receber lembretes.')
         return
       }
-      await scheduleReminder(r)
+      await scheduleReminder(saved)
     } catch {
       Alert.alert('Não foi possível agendar', 'O lembrete foi salvo, mas o agendamento falhou. Isso pode acontecer fora de um build de desenvolvimento.')
     }
@@ -89,7 +92,7 @@ export function RemindersScreen({ navigation, route }: Props) {
   function confirmDelete(r: Reminder) {
     Alert.alert(`Apagar "${r.title}"?`, undefined, [
       { text: 'Cancelar', style: 'cancel' },
-      { text: 'Apagar', style: 'destructive', onPress: async () => { await cancelReminder(r).catch(() => {}); await remove(r.id) } },
+      { text: 'Apagar', style: 'destructive', onPress: async () => { if (await remove(r.id)) await cancelReminder(r).catch(() => {}) } },
     ])
   }
 
@@ -108,7 +111,7 @@ export function RemindersScreen({ navigation, route }: Props) {
   }
 
   return (
-    <Screen label="KALUANA · LEMBRETES" title="Lembretes" onBack={() => navigation.goBack()}>
+    <Screen label="KALUANA · LEMBRETES" title="Lembretes" onBack={() => navigation.goBack()} error={apiError}>
       {items.length === 0 && <Text style={formStyles.muted}>Nenhum lembrete ainda.</Text>}
       {items.map((r) => (
         <Card key={r.id}>
