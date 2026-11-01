@@ -10,6 +10,7 @@ import type { IconName } from '../../components/ui/Icons'
 import { useAuth } from '../../context/AuthContext'
 import { useCollection } from '../../hooks/useCollection'
 import { useProfile } from '../../hooks/useProfile'
+import { remindersSource } from '../../services/remindersApi'
 import { colors, fonts, radius, spacing } from '../../styles/tokens'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>
@@ -19,7 +20,7 @@ export function ProfileScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets()
   const { user } = useAuth()
   const { value: profile } = useProfile()
-  const { items: reminders } = useCollection<Reminder>('reminders')
+  const { items: reminders } = useCollection<Reminder>(remindersSource)
 
   const name = profile.displayName || user?.name || ''
   const active = reminders.filter((r) => r.enabled).length
