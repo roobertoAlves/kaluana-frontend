@@ -5,6 +5,16 @@ export interface AuthenticatedUser {
   name: string
   email: string
   role: UserRole
+  nickname?: string | null
+  avatarColor?: string | null
+}
+
+/** A outra ponta de um emparelhamento (GET /api/pairing/links). */
+export interface LinkedUser {
+  userId: string
+  name: string
+  role: UserRole
+  linkedAt: string
 }
 
 export interface AuthResponse {

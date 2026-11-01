@@ -3,6 +3,7 @@ import Svg, { Circle, Path, Rect } from 'react-native-svg'
 export type IconName =
   | 'check' | 'timer' | 'bell' | 'note' | 'compass' | 'pin' | 'drop' | 'pencil' | 'mail'
   | 'user' | 'globe' | 'chevron' | 'gear' | 'shield' | 'people' | 'doc' | 'palette'
+  | 'list' | 'calendar' | 'sound' | 'plus' | 'close' | 'sparkle'
 
 /** Ícones de linha simples (24x24). Troque pelos do Figma quando exportados. */
 export function Icon({ name, size = 24, color = '#1F3556' }: { name: IconName; size?: number; color?: string }) {
@@ -24,6 +25,12 @@ export function Icon({ name, size = 24, color = '#1F3556' }: { name: IconName; s
       {name === 'gear' && (<><Circle cx={12} cy={12} r={3} {...p} /><Path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1" {...p} /></>)}
       {name === 'shield' && <Path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" {...p} />}
       {name === 'people' && (<><Circle cx={9} cy={9} r={3} {...p} /><Path d="M3 20c0-3.5 3-5 6-5s6 1.5 6 5M16 6a3 3 0 0 1 0 6M18 15c2 .7 3 2.3 3 5" {...p} /></>)}
+      {name === 'list' && <Path d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18h2" {...p} />}
+      {name === 'calendar' && (<><Rect x={3} y={5} width={18} height={16} rx={1} {...p} /><Path d="M3 10h18M8 3v4M16 3v4M7 14h4M7 17h7" {...p} /></>)}
+      {name === 'sound' && <Path d="M4 10v4h4l5 4V6L8 10zM16.5 9a4 4 0 0 1 0 6M19 6.5a7.5 7.5 0 0 1 0 11" {...p} />}
+      {name === 'plus' && <Path d="M12 5v14M5 12h14" {...p} />}
+      {name === 'close' && <Path d="M6 6l12 12M18 6L6 18" {...p} />}
+      {name === 'sparkle' && <Path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.7 1.8 1.8.7-1.8.7L19 21l-.7-1.8-1.8-.7 1.8-.7z" {...p} />}
       {name === 'palette' && (<><Circle cx={12} cy={12} r={9} {...p} /><Circle cx={8.5} cy={10} r={1} fill={color} /><Circle cx={12} cy={7.5} r={1} fill={color} /><Circle cx={15.5} cy={10} r={1} fill={color} /></>)}
     </Svg>
   )

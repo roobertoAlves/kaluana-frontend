@@ -7,11 +7,13 @@ interface ScreenProps {
   label: string
   title: string
   onBack?: () => void
+  /** Erro de API para mostrar logo abaixo do título (ex.: sem conexão). */
+  error?: string | null
   children: ReactNode
 }
 
 /** Casca das telas internas: voltar, rótulo, título e rolagem com teclado. */
-export function Screen({ label, title, onBack, children }: ScreenProps) {
+export function Screen({ label, title, onBack, error, children }: ScreenProps) {
   const insets = useSafeAreaInsets()
   return (
     <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -29,6 +31,11 @@ export function Screen({ label, title, onBack, children }: ScreenProps) {
           <Text accessibilityRole="header" style={styles.title}>
             {title}
           </Text>
+          {error ? (
+            <Text accessibilityRole="alert" style={styles.error}>
+              {error}
+            </Text>
+          ) : null}
           {children}
         </View>
       </ScrollView>
@@ -44,4 +51,5 @@ const styles = StyleSheet.create({
   backText: { fontFamily: fonts.display, fontSize: 11, letterSpacing: 0.9, color: colors.ink },
   label: { fontFamily: fonts.displayMedium, fontSize: 11, letterSpacing: 1.4, color: colors.emberBright, marginBottom: spacing[2] },
   title: { fontFamily: fonts.display, fontSize: 30, lineHeight: 34, color: colors.ink, marginBottom: spacing[5] },
+  error: { fontFamily: fonts.body, fontSize: 14, color: colors.danger, marginBottom: spacing[4] },
 })
