@@ -6,12 +6,16 @@
  */
 export type TimerStatus = 'RUNNING' | 'PAUSED' | 'DONE' | 'CANCELED'
 
+export type TimerSound = 'NONE' | 'WHITE' | 'PINK' | 'BROWN'
+
 export interface TimerSession {
   id: string
   task: string
+  taskId: string | null
   totalMs: number
   steps: string[]
   water: boolean
+  sound: TimerSound
   startedAt: number
   status: TimerStatus
   endsAt: number | null
@@ -22,14 +26,27 @@ export interface TimerSession {
 export const STEP_COLORS = ['#3E7BCE', '#F2C94C', '#7DAA84', '#E9782D'] as const
 export const MINUTE = 60_000
 
-export function startTimer(id: string, task: string, minutes: number, steps: string[], water: boolean, now: number): TimerSession {
-  const totalMs = Math.max(1, Math.round(minutes)) * MINUTE
+export interface StartOptions {
+  task: string
+  minutes: number
+  steps: string[]
+  water: boolean
+  /** RF9: som ambiente tocado durante a sessão. */
+  sound?: TimerSound
+  /** Tarefa (RF5) de onde a sessão foi iniciada, se houver. */
+  taskId?: string | null
+}
+
+export function startTimer(id: string, o: StartOptions, now: number): TimerSession {
+  const totalMs = Math.max(1, Math.round(o.minutes)) * MINUTE
   return {
     id,
-    task: task.trim() || 'Sessão',
+    task: o.task.trim() || 'Sessão',
+    taskId: o.taskId ?? null,
     totalMs,
-    steps: steps.map((s) => s.trim()).filter(Boolean).slice(0, 4),
-    water,
+    steps: o.steps.map((s) => s.trim()).filter(Boolean).slice(0, 4),
+    water: o.water,
+    sound: o.sound ?? 'NONE',
     startedAt: now,
     status: 'RUNNING',
     endsAt: now + totalMs,
