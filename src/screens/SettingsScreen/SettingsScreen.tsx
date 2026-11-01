@@ -114,7 +114,7 @@ export function SettingsScreen({ navigation }: Props) {
               {ACCESS_ROWS.map(({ key, label }) => (
                 <View key={key} style={styles.accessRow}>
                   <Text style={styles.accessLabel}>{label}</Text>
-                  <Switch value={access[key]} onValueChange={(v) => setAccess({ ...access, [key]: v })} accessibilityLabel={label} trackColor={{ true: colors.emberBright }} />
+                  <Switch value={access[key]} onValueChange={(v) => void setAccess({ ...access, [key]: v })} accessibilityLabel={label} trackColor={{ true: colors.emberBright }} />
                 </View>
               ))}
             </View>
