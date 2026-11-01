@@ -15,7 +15,8 @@ export type RootStackParamList = {
   Contacts: undefined
   Report: undefined
   EditProfile: undefined
-  TimerPlan: { preset?: { task: string; minutes: number; steps?: string[] } } | undefined
+  Tasks: undefined
+  TimerPlan: { preset?: { task: string; minutes: number; steps?: string[]; taskId?: string } } | undefined
   Timer: undefined
   TimerDone: undefined
   ReminderAlert: { title: string; reminderId?: string }
