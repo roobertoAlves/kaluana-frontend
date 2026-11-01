@@ -8,6 +8,7 @@ import { ArrowButton } from '../../components/ui/ArrowButton'
 import { Card, ChipGroup, Field, SmallButton, formStyles } from '../../components/ui/forms'
 import { useCollection } from '../../hooks/useCollection'
 import { newId } from '../../services/storage'
+import { contactsSource } from '../../services/contactsApi'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Contacts'>
 
@@ -35,7 +36,7 @@ function urlFor(c: TrustedContact): string {
 
 /** RF4: contatos de confiança com a forma de contato preferida. */
 export function ContactsScreen({ navigation }: Props) {
-  const { items, add, remove } = useCollection<TrustedContact>('contacts')
+  const { items, add, remove, error: apiError } = useCollection<TrustedContact>(contactsSource)
   const [adding, setAdding] = useState(false)
   const [name, setName] = useState('')
   const [method, setMethod] = useState<ContactMethod>('WHATSAPP')
@@ -47,7 +48,7 @@ export function ContactsScreen({ navigation }: Props) {
     const valid = method === 'EMAIL' ? /^\S+@\S+\.\S+$/.test(v) : v.replace(/\D/g, '').length >= 10
     if (!name.trim()) return setError('Informe um nome.')
     if (!valid) return setError(method === 'EMAIL' ? 'E-mail inválido.' : 'Informe o telefone com DDD.')
-    await add({ id: newId(), name: name.trim(), method, value: v })
+    if (!(await add({ id: newId(), name: name.trim(), method, value: v }))) return
     setName('')
     setValue('')
     setError(null)
@@ -70,7 +71,7 @@ export function ContactsScreen({ navigation }: Props) {
   }
 
   return (
-    <Screen label="KALUANA · CONTATOS" title="Contatos de confiança" onBack={() => navigation.goBack()}>
+    <Screen label="KALUANA · CONTATOS" title="Contatos de confiança" onBack={() => navigation.goBack()} error={apiError}>
       {items.length === 0 && !adding && <Text style={formStyles.muted}>Adicione pessoas com quem você quer falar quando precisar.</Text>}
 
       {items.map((c) => (
