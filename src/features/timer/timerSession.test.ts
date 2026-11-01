@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { MINUTE, addMinute, cancelTimer, currentStep, pauseTimer, progress, reevaluateTimer, remainingMs, resumeTimer, startTimer, formatClock } from './timerSession.ts'
 
 const T0 = 5_000_000
-const mk = (steps: string[] = []) => startTimer('a', 'Estudar', 25, steps, false, T0)
+const mk = (steps: string[] = []) => startTimer('a', { task: 'Estudar', minutes: 25, steps, water: false }, T0)
 
 test('começa rodando com o tempo total', () => {
   const s = mk()
@@ -49,4 +49,13 @@ test('cancelar encerra e não volta a rodar', () => {
   const s = cancelTimer(mk(), T0 + 1)
   assert.equal(s.status, 'CANCELED')
   assert.equal(resumeTimer(s, T0 + 2).status, 'CANCELED')
+})
+
+test('sessão sem som e sem tarefa por padrão; guarda os escolhidos', () => {
+  const plain = mk()
+  assert.equal(plain.sound, 'NONE')
+  assert.equal(plain.taskId, null)
+  const withSound = startTimer('b', { task: 'Ler', minutes: 10, steps: [], water: false, sound: 'BROWN', taskId: 't1' }, T0)
+  assert.equal(withSound.sound, 'BROWN')
+  assert.equal(withSound.taskId, 't1')
 })
