@@ -1,4 +1,6 @@
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
+import { FadeIn } from '../motion/FadeIn'
+import { PressableScale } from '../motion/PressableScale'
 import type { TextInputProps } from 'react-native'
 import { colors, fonts, radius, spacing } from '../../styles/tokens'
 
@@ -21,7 +23,7 @@ export function ChipGroup<T extends string | number>({
         {options.map((o) => {
           const on = o.value === value
           return (
-            <Pressable
+            <PressableScale
               key={String(o.value)}
               onPress={() => onChange(o.value)}
               accessibilityRole="radio"
@@ -29,7 +31,7 @@ export function ChipGroup<T extends string | number>({
               style={[styles.chip, on && styles.chipOn]}
             >
               <Text style={[styles.chipText, on && styles.chipTextOn]}>{o.label}</Text>
-            </Pressable>
+            </PressableScale>
           )
         })}
       </View>
@@ -65,7 +67,7 @@ export function SmallButton({ label, onPress, danger }: { label: string; onPress
 }
 
 export function Card({ children }: { children: React.ReactNode }) {
-  return <View style={styles.card}>{children}</View>
+  return <FadeIn style={styles.card}>{children}</FadeIn>
 }
 
 export const formStyles = StyleSheet.create({

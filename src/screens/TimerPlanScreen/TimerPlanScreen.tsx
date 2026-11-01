@@ -6,7 +6,9 @@ import { Screen } from '../../components/ui/Screen'
 import { ArrowButton } from '../../components/ui/ArrowButton'
 import { ChipGroup, Field, SmallButton, formStyles } from '../../components/ui/forms'
 import { useTimer } from '../../context/TimerContext'
+import { SOUND_OPTIONS } from '../../hooks/useAmbientSound'
 import { ensureNotificationSetup } from '../../services/notifications'
+import type { TimerSound } from '../../features/timer/timerSession'
 import { colors, spacing } from '../../styles/tokens'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TimerPlan'>
@@ -21,12 +23,13 @@ export function TimerPlanScreen({ navigation, route }: Props) {
   const [minutes, setMinutes] = useState(preset?.minutes ?? 25)
   const [steps, setSteps] = useState<string[]>(preset?.steps ?? [])
   const [water, setWater] = useState(false)
+  const [sound, setSound] = useState<TimerSound>('NONE')
 
   const busy = session?.status === 'RUNNING' || session?.status === 'PAUSED'
 
   async function go() {
     if (water) await ensureNotificationSetup().catch(() => false)
-    start({ task, minutes, steps, water })
+    start({ task, minutes, steps, water, sound, taskId: preset?.taskId ?? null })
     navigation.replace('Timer')
   }
 
@@ -55,6 +58,13 @@ export function TimerPlanScreen({ navigation, route }: Props) {
         </View>
         <Switch value={water} onValueChange={setWater} accessibilityLabel="Lembrar de beber água" trackColor={{ true: colors.emberBright }} />
       </View>
+
+      <ChipGroup label="SOM AMBIENTE" options={SOUND_OPTIONS} value={sound} onChange={setSound} />
+      {sound !== 'NONE' && (
+        <Text style={[formStyles.muted, { marginTop: -spacing[2], marginBottom: spacing[4] }]}>
+          Toca em loop durante a sessão e pausa junto com ela. Use fones se estiver em lugar compartilhado.
+        </Text>
+      )}
 
       <ArrowButton label="Começar" onPress={go} />
     </Screen>

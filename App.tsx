@@ -36,8 +36,9 @@ import { EventLogScreen } from './src/screens/EventLogScreen/EventLogScreen'
 import { RemindersScreen } from './src/screens/RemindersScreen/RemindersScreen'
 import { CheckInScreen } from './src/screens/CheckInScreen/CheckInScreen'
 import { ContactsScreen } from './src/screens/ContactsScreen/ContactsScreen'
-import { GuideScreen } from './src/screens/GuideScreen/GuideScreen'
 import { ReportScreen } from './src/screens/ReportScreen/ReportScreen'
+import { TasksScreen } from './src/screens/TasksScreen/TasksScreen'
+import { DayPlanScreen } from './src/screens/DayPlanScreen/DayPlanScreen'
 import { EditProfileScreen } from './src/screens/EditProfileScreen/EditProfileScreen'
 import { TimerPlanScreen } from './src/screens/TimerPlanScreen/TimerPlanScreen'
 import { TimerScreen } from './src/screens/TimerScreen/TimerScreen'
@@ -126,8 +127,9 @@ export default function App() {
               <Stack.Screen name="Reminders" component={RemindersScreen} />
               <Stack.Screen name="CheckIn" component={CheckInScreen} />
               <Stack.Screen name="Contacts" component={ContactsScreen} />
-              <Stack.Screen name="Guide" component={GuideScreen} />
               <Stack.Screen name="Report" component={ReportScreen} />
+              <Stack.Screen name="Tasks" component={TasksScreen} />
+              <Stack.Screen name="DayPlan" component={DayPlanScreen} />
               <Stack.Screen name="EditProfile" component={EditProfileScreen} />
               <Stack.Screen name="TimerPlan" component={TimerPlanScreen} />
               <Stack.Screen name="Timer" component={TimerScreen} />

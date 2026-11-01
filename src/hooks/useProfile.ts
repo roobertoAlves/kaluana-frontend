@@ -1,24 +1,12 @@
 import { useStoredObject } from './useStoredObject'
+import { DEFAULT_PROFILE } from '../features/profile/profile'
+import type { LocalProfile } from '../features/profile/profile'
+import { profileRemote } from '../services/profileApi'
 
-export interface LocalProfile {
-  nickname: string
-  displayName: string
-  avatarColor: string
-  language: 'pt-BR'
-  theme: 'light'
-}
+export { AVATAR_COLORS, DEFAULT_PROFILE } from '../features/profile/profile'
+export type { LocalProfile } from '../features/profile/profile'
 
-export const AVATAR_COLORS = ['#E9782D', '#3E7BCE', '#7DAA84', '#F2C94C', '#1F3556'] as const
-
-export const DEFAULT_PROFILE: LocalProfile = {
-  nickname: '',
-  displayName: '',
-  avatarColor: AVATAR_COLORS[0],
-  language: 'pt-BR',
-  theme: 'light',
-}
-
-/** Preferências de perfil guardadas no aparelho (ainda sem endpoint no back-end). */
+/** Perfil da conta: nome, apelido e cor vêm da API; idioma e tema ficam no aparelho. */
 export function useProfile() {
-  return useStoredObject<LocalProfile>('profile', DEFAULT_PROFILE)
+  return useStoredObject<LocalProfile>('profile', DEFAULT_PROFILE, profileRemote)
 }

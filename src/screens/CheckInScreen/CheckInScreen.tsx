@@ -8,6 +8,7 @@ import { Screen } from '../../components/ui/Screen'
 import { Card, formStyles } from '../../components/ui/forms'
 import { useCollection } from '../../hooks/useCollection'
 import { newId, todayKey } from '../../services/storage'
+import { checkInsSource } from '../../services/checkInsApi'
 import { LEVEL_LABEL } from '../../features/reports/buildReport'
 import { colors, fonts, radius, spacing } from '../../styles/tokens'
 
@@ -16,13 +17,14 @@ const LEVELS = [1, 2, 3, 4, 5] as const
 
 /** RF3: check-in diário + histórico em série temporal. Só mostra o que foi registrado. */
 export function CheckInScreen({ navigation }: Props) {
-  const { items, upsert } = useCollection<CheckIn>('checkins')
+  const { items, upsert, error } = useCollection<CheckIn>(checkInsSource)
   const [justSaved, setJustSaved] = useState(false)
   const today = todayKey()
   const todays = items.find((c) => c.date === today)
 
   async function pick(level: CheckIn['level']) {
-    await upsert({ id: todays?.id ?? newId(), date: today, level, timestamp: new Date().toISOString() })
+    const saved = await upsert({ id: todays?.id ?? newId(), date: today, level, timestamp: new Date().toISOString() })
+    if (!saved) return
     setJustSaved(true)
     setTimeout(() => setJustSaved(false), 2000)
   }
@@ -30,7 +32,7 @@ export function CheckInScreen({ navigation }: Props) {
   const series = [...items].sort((a, b) => a.date.localeCompare(b.date)).slice(-14)
 
   return (
-    <Screen label="KALUANA · CHECK-IN" title="Como foi hoje?" onBack={() => navigation.goBack()}>
+    <Screen label="KALUANA · CHECK-IN" title="Como foi hoje?" onBack={() => navigation.goBack()} error={error}>
       <Text style={[formStyles.muted, { marginBottom: spacing[4] }]}>
         {todays ? 'Você já registrou hoje. Tocar de novo atualiza o registro.' : 'Escolha o que mais combina com o seu dia.'}
       </Text>
