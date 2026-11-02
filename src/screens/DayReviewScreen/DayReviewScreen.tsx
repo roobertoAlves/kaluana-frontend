@@ -142,6 +142,6 @@ const styles = StyleSheet.create({
   pillOn: { backgroundColor: colors.ink },
   pillText: { fontFamily: fonts.bodyBold, fontSize: 14, color: colors.ink },
   pillTextOn: { color: colors.white },
-  small: { fontSize: 13 },
+  small: { fontSize: 13, marginBottom: spacing[3] },
   space: { marginTop: spacing[4] },
 })
