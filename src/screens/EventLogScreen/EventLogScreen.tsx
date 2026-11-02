@@ -8,6 +8,7 @@ import { ArrowButton } from '../../components/ui/ArrowButton'
 import { Card, ChipGroup, SmallButton, formStyles } from '../../components/ui/forms'
 import { useCollection } from '../../hooks/useCollection'
 import { newId } from '../../services/storage'
+import { eventsSource } from '../../services/eventsApi'
 import { CATEGORY_LABEL } from '../../features/reports/buildReport'
 import { colors, fonts, radius, spacing } from '../../styles/tokens'
 
@@ -17,14 +18,15 @@ const CATEGORIES = (Object.keys(CATEGORY_LABEL) as EventCategory[]).map((c) => (
 
 /** RF1: registrar evento (categoria fixa, texto opcional, tag de urgência). */
 export function EventLogScreen({ navigation }: Props) {
-  const { items, add, remove } = useCollection<LifeEvent>('events')
+  const { items, add, remove, error } = useCollection<LifeEvent>(eventsSource)
   const [category, setCategory] = useState<EventCategory>('SOBRECARGA')
   const [text, setText] = useState('')
   const [urgent, setUrgent] = useState(false)
   const [saved, setSaved] = useState(false)
 
   async function save() {
-    await add({ id: newId(), category, text: text.trim() || undefined, urgent, timestamp: new Date().toISOString() })
+    const created = await add({ id: newId(), category, text: text.trim() || undefined, urgent, timestamp: new Date().toISOString() })
+    if (!created) return
     setText('')
     setUrgent(false)
     setSaved(true)
@@ -39,7 +41,7 @@ export function EventLogScreen({ navigation }: Props) {
   }
 
   return (
-    <Screen label="KALUANA · EVENTOS" title="Registrar evento" onBack={() => navigation.goBack()}>
+    <Screen label="KALUANA · EVENTOS" title="Registrar evento" onBack={() => navigation.goBack()} error={error}>
       <ChipGroup label="O QUE ACONTECEU?" options={CATEGORIES} value={category} onChange={setCategory} />
 
       <Text style={s.fieldLabel}>NOTA (OPCIONAL)</Text>

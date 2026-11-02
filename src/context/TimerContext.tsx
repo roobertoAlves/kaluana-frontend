@@ -2,16 +2,13 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import type { ReactNode } from 'react'
 import { useAuth } from './AuthContext'
 import { newId, readJson, writeJson } from '../services/storage'
+import { registerTimerSession } from '../services/timerApi'
 import { cancelSessionAlerts, scheduleSessionAlerts } from '../services/notifications'
 import { addMinute, cancelTimer, pauseTimer, reevaluateTimer, resumeTimer, startTimer } from '../features/timer/timerSession'
-import type { TimerSession } from '../features/timer/timerSession'
+import type { StartOptions, TimerSession } from '../features/timer/timerSession'
 
-interface StartOptions {
-  task: string
-  minutes: number
-  steps: string[]
-  water: boolean
-}
+/** Sessões salvas por versões anteriores do app não tinham som nem tarefa. */
+const normalize = (s: TimerSession | null): TimerSession | null => (s ? { ...s, sound: s.sound ?? 'NONE', taskId: s.taskId ?? null } : null)
 
 interface TimerContextValue {
   session: TimerSession | null
@@ -29,7 +26,7 @@ const Ctx = createContext<TimerContextValue | null>(null)
 
 /** Guarda a sessão do temporizador (única, persistida) para Home, mini-player e telas T1 a T3. */
 export function TimerProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth()
+  const { user, accessToken } = useAuth()
   const userId = user?.id ?? 'anon'
   const [session, setSession] = useState<TimerSession | null>(null)
   const [now, setNow] = useState(Date.now())
@@ -37,25 +34,34 @@ export function TimerProvider({ children }: { children: ReactNode }) {
 
   const commit = useCallback(
     (next: TimerSession | null) => {
+      const prev = ref.current
       ref.current = next
       setSession(next)
       void writeJson(userId, 'timer-session', next)
+      // Registra no servidor só na transição para DONE/CANCELED (uma vez por sessão).
+      if (accessToken && next && next.status !== prev?.status && (next.status === 'DONE' || next.status === 'CANCELED')) {
+        void registerTimerSession(accessToken, next).catch(() => {})
+      }
     },
-    [userId],
+    [userId, accessToken],
   )
 
   // Carrega a sessão guardada e reavalia (cobre fechar e reabrir o app).
   useEffect(() => {
     let alive = true
-    readJson<TimerSession | null>(userId, 'timer-session', null).then((s) => {
+    readJson<TimerSession | null>(userId, 'timer-session', null).then((stored) => {
+      const s = normalize(stored)
       if (!alive) return
-      ref.current = s ? reevaluateTimer(s, Date.now()) : null
-      setSession(ref.current)
+      ref.current = s
+      const evaluated = s ? reevaluateTimer(s, Date.now()) : null
+      // Se o prazo venceu com o app fechado, passa pelo commit para registrar o fim.
+      if (evaluated !== s) commit(evaluated)
+      else setSession(s)
     })
     return () => {
       alive = false
     }
-  }, [userId])
+  }, [userId, commit])
 
   const running = session?.status === 'RUNNING'
   useEffect(() => {
@@ -82,7 +88,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
       session,
       now,
       start: (o) => {
-        const s = startTimer(newId(), o.task, o.minutes, o.steps, o.water, Date.now())
+        const s = startTimer(newId(), o, Date.now())
         setNow(Date.now())
         commit(s)
         alerts(s)

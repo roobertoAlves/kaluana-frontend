@@ -13,10 +13,11 @@ export type RootStackParamList = {
   Reminders: { preset?: string } | undefined
   CheckIn: undefined
   Contacts: undefined
-  Guide: undefined
   Report: undefined
   EditProfile: undefined
-  TimerPlan: { preset?: { task: string; minutes: number; steps?: string[] } } | undefined
+  Tasks: undefined
+  DayPlan: undefined
+  TimerPlan: { preset?: { task: string; minutes: number; steps?: string[]; taskId?: string } } | undefined
   Timer: undefined
   TimerDone: undefined
   ReminderAlert: { title: string; reminderId?: string }

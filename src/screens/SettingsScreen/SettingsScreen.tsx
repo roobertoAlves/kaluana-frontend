@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Alert, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native'
+import { useFocusEffect } from '@react-navigation/native'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import type { RootStackParamList } from '../../navigation/types'
@@ -9,6 +10,10 @@ import type { IconName } from '../../components/ui/Icons'
 import { useAuth } from '../../context/AuthContext'
 import { generateCode, ApiError } from '../../services/api'
 import { useStoredObject } from '../../hooks/useStoredObject'
+import { accessRemote } from '../../services/accessApi'
+import { listLinks, unlink } from '../../services/pairingApi'
+import { errorMessage } from '../../services/http'
+import type { LinkedUser } from '../../types'
 import { DEFAULT_ACCESS } from '../../types/domain'
 import type { AccessSettings } from '../../types/domain'
 import { colors, fonts, radius, spacing } from '../../styles/tokens'
@@ -37,7 +42,11 @@ export function SettingsScreen({ navigation }: Props) {
   const { clearSession, user, accessToken } = useAuth()
   const isPrimary = user?.role === 'PRIMARY'
 
-  const { value: access, update: setAccess } = useStoredObject<AccessSettings>('access', DEFAULT_ACCESS)
+  const { value: access, update: setAccess, error: accessError } = useStoredObject<AccessSettings>(
+    'access',
+    DEFAULT_ACCESS,
+    isPrimary ? accessRemote : undefined,
+  )
   const [code, setCode] = useState<string | null>(null)
   const [expiresAt, setExpiresAt] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -114,12 +123,15 @@ export function SettingsScreen({ navigation }: Props) {
               {ACCESS_ROWS.map(({ key, label }) => (
                 <View key={key} style={styles.accessRow}>
                   <Text style={styles.accessLabel}>{label}</Text>
-                  <Switch value={access[key]} onValueChange={(v) => setAccess({ ...access, [key]: v })} accessibilityLabel={label} trackColor={{ true: colors.emberBright }} />
+                  <Switch value={access[key]} onValueChange={(v) => void setAccess({ ...access, [key]: v })} accessibilityLabel={label} trackColor={{ true: colors.emberBright }} />
                 </View>
               ))}
+              {accessError && <Text style={styles.errorText} accessibilityRole="alert">{accessError}</Text>}
             </View>
           </>
         )}
+
+        {accessToken && <LinkedPeople token={accessToken} isPrimary={isPrimary} />}
 
         <Text style={styles.section}>SOBRE</Text>
         <Group rows={[{ icon: 'compass', label: 'Versão', value: APP_VERSION }]} />
@@ -145,6 +157,53 @@ export function SettingsScreen({ navigation }: Props) {
         }}
       />
     </View>
+  )
+}
+
+/** RF6: quem já está vinculado. O principal revoga o acesso; o responsável sai do vínculo. */
+function LinkedPeople({ token, isPrimary }: { token: string; isPrimary: boolean }) {
+  const [links, setLinks] = useState<LinkedUser[]>([])
+  const [error, setError] = useState<string | null>(null)
+
+  const load = useCallback(() => {
+    listLinks(token)
+      .then((l) => {
+        setLinks(l)
+        setError(null)
+      })
+      .catch((e) => setError(errorMessage(e)))
+  }, [token])
+
+  useFocusEffect(load)
+
+  function confirmUnlink(l: LinkedUser) {
+    const text = isPrimary ? `${l.name} deixará de ver seus dados.` : `Você deixará de ver os dados de ${l.name}.`
+    Alert.alert('Desfazer vínculo?', text, [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Desfazer',
+        style: 'destructive',
+        onPress: () => void unlink(token, l.userId).then(load).catch((e) => setError(errorMessage(e))),
+      },
+    ])
+  }
+
+  return (
+    <>
+      <Text style={styles.section}>{isPrimary ? 'PESSOAS CONECTADAS' : 'CONTA VINCULADA'}</Text>
+      <View style={styles.box}>
+        {links.length === 0 && <Text style={styles.desc}>{isPrimary ? 'Ninguém conectado ainda.' : 'Nenhuma conta vinculada.'}</Text>}
+        {links.map((l) => (
+          <View key={l.userId} style={styles.accessRow}>
+            <Text style={styles.accessLabel}>{l.name}</Text>
+            <Pressable onPress={() => confirmUnlink(l)} accessibilityRole="button" hitSlop={8}>
+              <Text style={styles.unlinkText}>Desfazer</Text>
+            </Pressable>
+          </View>
+        ))}
+        {error && <Text style={styles.errorText} accessibilityRole="alert">{error}</Text>}
+      </View>
+    </>
   )
 }
 
@@ -193,6 +252,7 @@ const styles = StyleSheet.create({
   errorText: { fontFamily: fonts.body, fontSize: 13, color: colors.danger, marginTop: spacing[3] },
   accessRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: 48 },
   accessLabel: { fontFamily: fonts.body, fontSize: 16, color: colors.ink },
+  unlinkText: { fontFamily: fonts.bodyBold, fontSize: 14, color: colors.danger, textDecorationLine: 'underline' },
   logout: { alignSelf: 'center', minHeight: 48, justifyContent: 'center', marginTop: spacing[5] },
   logoutText: { fontFamily: fonts.bodyBold, fontSize: 15, color: colors.danger, textDecorationLine: 'underline' },
 })

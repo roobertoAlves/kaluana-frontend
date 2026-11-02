@@ -10,6 +10,8 @@ import { useAuth } from '../../context/AuthContext'
 import { useTimer } from '../../context/TimerContext'
 import { useCollection } from '../../hooks/useCollection'
 import { useProfile } from '../../hooks/useProfile'
+import { remindersSource } from '../../services/remindersApi'
+import { checkInsSource } from '../../services/checkInsApi'
 import { todayKey } from '../../services/storage'
 import { nextFireTime } from '../../services/notifications'
 import { LEVEL_LABEL } from '../../features/reports/buildReport'
@@ -21,11 +23,12 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Home'>
 type Shortcut = { label: string; icon: IconName; go?: (n: Props['navigation']) => void }
 
 const SHORTCUTS: Shortcut[] = [
+  { label: 'Tarefas', icon: 'list', go: (n) => n.navigate('Tasks') },
+  { label: 'Plano do dia', icon: 'calendar', go: (n) => n.navigate('DayPlan') },
   { label: 'Check-in', icon: 'check', go: (n) => n.navigate('CheckIn') },
   { label: 'Temporizador', icon: 'timer', go: (n) => n.navigate('TimerPlan') },
   { label: 'Lembretes', icon: 'bell', go: (n) => n.navigate('Reminders') },
   { label: 'Eventos', icon: 'note', go: (n) => n.navigate('EventLog') },
-  { label: 'Guia', icon: 'compass', go: (n) => n.navigate('Guide') },
   { label: 'Local', icon: 'pin' }, // "em breve": definição pendente (TCC exclui geolocalização em tempo real)
 ]
 
@@ -54,8 +57,8 @@ export function HomeScreen({ navigation }: Props) {
   const { user } = useAuth()
   const { value: profile } = useProfile()
   const { session, now } = useTimer()
-  const { items: reminders } = useCollection<Reminder>('reminders')
-  const { items: checkins } = useCollection<CheckIn>('checkins')
+  const { items: reminders } = useCollection<Reminder>(remindersSource)
+  const { items: checkins } = useCollection<CheckIn>(checkInsSource)
 
   const firstName = profile.nickname || profile.displayName.split(' ')[0] || user?.name?.split(' ')[0] || ''
   const next = nextReminder(reminders)
