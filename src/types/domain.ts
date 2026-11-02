@@ -87,11 +87,24 @@ export interface DayPlanBlock {
   end: string
 }
 
+/** RF14: o que mudou num replanejamento; {@code from}/{@code to} são "HH:MM". */
+export interface PlanChange {
+  taskId: string
+  title: string
+  kind: 'MOVED' | 'ADDED' | 'DONE' | 'REMOVED' | 'DROPPED'
+  from: string | null
+  to: string | null
+}
+
 export interface DayPlan {
   date: string
   energyLevel: number | null
   source: 'RULES' | 'ASSISTANT'
   note: string | null
+  /** Fim da janela do plano ("HH:MM"), usado ao replanejar. */
+  windowEnd: string
   blocks: DayPlanBlock[]
   unscheduled: { taskId: string; title: string; minutes: number }[]
+  /** Só vem preenchido no replanejamento. */
+  changes: PlanChange[]
 }

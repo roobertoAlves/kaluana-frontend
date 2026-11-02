@@ -2,25 +2,23 @@ import { useState } from 'react'
 import { StyleSheet, Switch, Text, View } from 'react-native'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import type { RootStackParamList } from '../../navigation/types'
-import type { CheckIn, DayPlan, DayPlanBlock } from '../../types/domain'
+import type { CheckIn, DayPlanBlock } from '../../types/domain'
 import { Screen } from '../../components/ui/Screen'
 import { ArrowButton } from '../../components/ui/ArrowButton'
 import { ChipGroup, SmallButton, formStyles } from '../../components/ui/forms'
 import { FadeIn } from '../../components/motion/FadeIn'
 import { PressableScale } from '../../components/motion/PressableScale'
 import { Icon } from '../../components/ui/Icons'
-import { useAuth } from '../../context/AuthContext'
 import { useCollection } from '../../hooks/useCollection'
 import { useTasks } from '../../hooks/useTasks'
 import { useAssistantStatus } from '../../hooks/useAssistantStatus'
+import { useDayPlan } from '../../hooks/useDayPlan'
 import { checkInsSource } from '../../services/checkInsApi'
-import { fetchDayPlan } from '../../services/dayPlanApi'
-import { ApiError, errorMessage } from '../../services/http'
 import { todayKey } from '../../services/storage'
-import { nextSlot, planLocally } from '../../features/plan/dayPlanner'
 import { focusSteps } from '../../features/tasks/taskModel'
 import { LEVEL_LABEL } from '../../features/reports/buildReport'
 import { colors, fonts, radius, spacing } from '../../styles/tokens'
+import { ReplanNotice } from './ReplanNotice'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'DayPlan'>
 
@@ -34,51 +32,17 @@ const ENERGY_HINT: Record<number, string> = {
   5: 'Dia tranquilo: as tarefas importantes e longas vêm antes.',
 }
 
-const nowHHMM = () => {
-  const d = new Date()
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-}
-
-/** RF10/RF11: "o que faço agora e depois?" Linha do tempo do resto do dia. */
+/** RF10/RF11/RF14: "o que faço agora e depois?" Linha do tempo do resto do dia, que se reorganiza quando o dia muda. */
 export function DayPlanScreen({ navigation }: Props) {
-  const { accessToken } = useAuth()
   const tasks = useTasks()
   const { items: checkins } = useCollection<CheckIn>(checkInsSource)
   const assistant = useAssistantStatus()
   const [end, setEnd] = useState('22:00')
   const [useAssistant, setUseAssistant] = useState(false)
-  const [plan, setPlan] = useState<DayPlan | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
   const today = todayKey()
   const energy = checkins.find((c) => c.date === today)?.level ?? null
-
-  async function build() {
-    const start = nextSlot()
-    if (start >= end) {
-      setError(`Já passou de ${end}. Escolha um horário mais tarde.`)
-      return
-    }
-    setError(null)
-    setLoading(true)
-    try {
-      setPlan(
-        accessToken
-          ? await fetchDayPlan(accessToken, { date: today, start, end, assistant: useAssistant && assistant.enabled })
-          : planLocally(tasks.items, today, energy, start, end),
-      )
-    } catch (e) {
-      // Sem conexão: as mesmas regras rodam no aparelho com as tarefas em cache.
-      if (e instanceof ApiError && e.status === 0) {
-        setPlan({ ...planLocally(tasks.items, today, energy, start, end), note: 'Sem conexão: plano montado no aparelho.' })
-      } else {
-        setError(errorMessage(e))
-      }
-    } finally {
-      setLoading(false)
-    }
-  }
+  const day = useDayPlan(tasks, energy)
+  const { plan } = day
 
   function focus(block: DayPlanBlock) {
     const task = tasks.items.find((t) => t.id === block.taskId)
@@ -88,11 +52,11 @@ export function DayPlanScreen({ navigation }: Props) {
     })
   }
 
-  const now = nowHHMM()
+  const now = day.now
   const pendingCount = tasks.items.filter((t) => !t.done).length
 
   return (
-    <Screen label="KALUANA · PLANO DO DIA" title="Plano do dia" onBack={() => navigation.goBack()} error={error}>
+    <Screen label="KALUANA · PLANO DO DIA" title="Plano do dia" onBack={() => navigation.goBack()} error={day.error}>
       <View style={styles.energy}>
         <Text style={styles.energyTitle}>{energy ? LEVEL_LABEL[energy] : 'Sem check-in hoje'}</Text>
         <Text style={formStyles.muted}>{energy ? ENERGY_HINT[energy] : 'Com o check-in, o plano se ajusta ao seu dia.'}</Text>
@@ -111,10 +75,11 @@ export function DayPlanScreen({ navigation }: Props) {
         </View>
       )}
 
-      <ArrowButton label={loading ? 'Montando...' : plan ? 'Montar de novo' : 'Montar meu plano'} onPress={build} />
+      <ArrowButton label={day.busy && !plan ? 'Montando...' : plan ? 'Montar de novo' : 'Montar meu plano'} onPress={() => day.build(end, useAssistant && assistant.enabled)} />
 
       {plan && (
         <View style={{ marginTop: spacing[5] }}>
+          <ReplanNotice changes={day.changes} stale={day.stale} busy={day.busy} onDismiss={day.dismissChanges} onReplan={day.replan} />
           {plan.source === 'ASSISTANT' && <Text style={styles.source}>Ordem sugerida pelo assistente{assistant.model ? ` (${assistant.model})` : ''}.</Text>}
           {plan.note && <Text style={styles.source}>{plan.note}</Text>}
 
@@ -139,6 +104,14 @@ export function DayPlanScreen({ navigation }: Props) {
               ))}
             </>
           )}
+
+          <View style={[formStyles.row, styles.autoRow]}>
+            <View style={{ flex: 1 }}>
+              <Text style={formStyles.itemTitle}>Reorganizar sozinho</Text>
+              <Text style={formStyles.muted}>Quando uma tarefa atrasa, termina antes ou chega uma nova, o plano se ajusta e mostra o que mudou.</Text>
+            </View>
+            <Switch value={day.autoReplan} onValueChange={day.setAutoReplan} accessibilityLabel="Reorganizar o plano sozinho" trackColor={{ true: colors.emberBright }} />
+          </View>
         </View>
       )}
     </Screen>
@@ -183,6 +156,7 @@ const styles = StyleSheet.create({
   energy: { backgroundColor: colors.bgSurface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.cream, padding: spacing[4], marginBottom: spacing[4] },
   energyTitle: { fontFamily: fonts.display, fontSize: 17, color: colors.ink, marginBottom: spacing[1] },
   assistantRow: { marginBottom: spacing[4] },
+  autoRow: { marginTop: spacing[5] },
   source: { fontFamily: fonts.bodyItalic, fontSize: 13, color: colors.textSecondary, marginBottom: spacing[3] },
   empty: { borderWidth: 1, borderStyle: 'dashed', borderColor: colors.sand, borderRadius: radius.lg, padding: spacing[4] },
   blockRow: { flexDirection: 'row', gap: spacing[3] },
