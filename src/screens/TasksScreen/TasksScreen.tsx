@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import type { RootStackParamList } from '../../navigation/types'
@@ -14,7 +14,10 @@ import { suggestSteps } from '../../services/assistantApi'
 import { errorMessage } from '../../services/http'
 import { newId, todayKey } from '../../services/storage'
 import { focusSteps, sortForList } from '../../features/tasks/taskModel'
+import { parseQuickTask } from '../../features/tasks/quickAdd'
+import type { QuickKind } from '../../features/tasks/quickAdd'
 import { TaskRow } from './TaskRow'
+import { QuickChips } from './QuickChips'
 import { colors, fonts, radius, spacing } from '../../styles/tokens'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Tasks'>
@@ -38,7 +41,10 @@ function dueFrom(when: (typeof WHEN)[number]['value']): string | null {
   return todayKey(d)
 }
 
-/** RF5: "o que eu preciso fazer?" Lista curta de pendentes, com microetapas sob demanda. */
+/**
+ * RF5/RF15: "o que eu preciso fazer?" Lista curta de pendentes, com microetapas
+ * sob demanda. A tarefa pode ser escrita numa frase ("estudar amanhã 30min !alta").
+ */
 export function TasksScreen({ navigation }: Props) {
   const { accessToken } = useAuth()
   const tasks = useTasks()
@@ -51,28 +57,36 @@ export function TasksScreen({ navigation }: Props) {
   const [expanded, setExpanded] = useState<string | null>(null)
   const [showDone, setShowDone] = useState(false)
   const [localError, setLocalError] = useState<string | null>(null)
+  const [ignored, setIgnored] = useState<ReadonlySet<QuickKind>>(new Set())
   const today = todayKey()
+  const parsed = useMemo(() => parseQuickTask(title, new Date(), ignored), [title, ignored])
 
   const sorted = sortForList(tasks.items)
   const pending = sorted.filter((t) => !t.done)
   const done = sorted.filter((t) => t.done)
 
   async function create() {
-    if (!title.trim()) return
+    if (!parsed.title) return
+    // O que a frase disse vale mais que as opções; o resto vem das opções.
     const task: Task = {
       id: newId(),
-      title: title.trim(),
-      priority,
-      estimatedMinutes: minutes || null,
-      dueDate: dueFrom(when),
+      title: parsed.title,
+      priority: parsed.priority ?? priority,
+      estimatedMinutes: parsed.estimatedMinutes ?? (minutes || null),
+      dueDate: parsed.dueDate ?? dueFrom(when),
       done: false,
       completedAt: null,
-      steps: [],
+      steps: parsed.steps.map((text) => ({ id: newId(), text, done: false })),
     }
     const saved = await tasks.add(task)
     if (!saved) return
-    setTitle('')
+    changeTitle('')
     setExpanded(saved.id)
+  }
+
+  function changeTitle(text: string) {
+    setTitle(text)
+    if (!text.trim()) setIgnored(new Set())
   }
 
   function confirmDelete(task: Task) {
@@ -121,11 +135,11 @@ export function TasksScreen({ navigation }: Props) {
       <View style={styles.addRow}>
         <TextInput
           value={title}
-          onChangeText={setTitle}
-          placeholder="O que você precisa fazer?"
+          onChangeText={changeTitle}
+          placeholder="Ex.: estudar amanhã 30min !alta"
           placeholderTextColor={colors.sand}
           accessibilityLabel="Nova tarefa"
-          maxLength={120}
+          maxLength={400}
           returnKeyType="done"
           onSubmitEditing={create}
           style={styles.addInput}
@@ -134,6 +148,7 @@ export function TasksScreen({ navigation }: Props) {
           <Icon name="plus" color={colors.white} />
         </PressableScale>
       </View>
+      <QuickChips parsed={parsed} onUndo={(kind) => setIgnored(new Set([...ignored, kind]))} />
 
       <SmallButton label={more ? 'Menos opções' : 'Prioridade, duração e data'} onPress={() => setMore(!more)} />
       {more && (
