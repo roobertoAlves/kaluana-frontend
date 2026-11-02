@@ -43,6 +43,9 @@ import { EditProfileScreen } from './src/screens/EditProfileScreen/EditProfileSc
 import { TimerPlanScreen } from './src/screens/TimerPlanScreen/TimerPlanScreen'
 import { TimerScreen } from './src/screens/TimerScreen/TimerScreen'
 import { TimerDoneScreen } from './src/screens/TimerDoneScreen/TimerDoneScreen'
+import { SoundsScreen } from './src/screens/SoundsScreen/SoundsScreen'
+import { RelaxScreen } from './src/screens/RelaxScreen/RelaxScreen'
+import { SleepScreen } from './src/screens/SleepScreen/SleepScreen'
 import { ReminderAlertScreen } from './src/screens/ReminderAlertScreen/ReminderAlertScreen'
 import { TimerProvider } from './src/context/TimerContext'
 import { getInitialTap, listenNotificationTaps } from './src/services/notifications'
@@ -134,6 +137,9 @@ export default function App() {
               <Stack.Screen name="TimerPlan" component={TimerPlanScreen} />
               <Stack.Screen name="Timer" component={TimerScreen} />
               <Stack.Screen name="TimerDone" component={TimerDoneScreen} />
+              <Stack.Screen name="Sounds" component={SoundsScreen} />
+              <Stack.Screen name="Relax" component={RelaxScreen} />
+              <Stack.Screen name="Sleep" component={SleepScreen} />
               <Stack.Screen name="ReminderAlert" component={ReminderAlertScreen} />
             </Stack.Navigator>
           </NavigationContainer>

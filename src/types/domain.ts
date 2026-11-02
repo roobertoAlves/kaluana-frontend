@@ -75,7 +75,7 @@ export interface Task {
   steps: TaskStep[]
 }
 
-export type TimerSound = 'NONE' | 'WHITE' | 'PINK' | 'BROWN'
+export type TimerSound = 'NONE' | 'WHITE' | 'PINK' | 'BROWN' | 'RAIN' | 'WAVES' | 'FIRE' | 'FOREST'
 
 /** RF10: plano do dia. Mesmo formato de GET /api/day-plan. */
 export interface DayPlanBlock {

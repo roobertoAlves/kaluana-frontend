@@ -27,6 +27,7 @@ const SHORTCUTS: Shortcut[] = [
   { label: 'Plano do dia', icon: 'calendar', go: (n) => n.navigate('DayPlan') },
   { label: 'Check-in', icon: 'check', go: (n) => n.navigate('CheckIn') },
   { label: 'Temporizador', icon: 'timer', go: (n) => n.navigate('TimerPlan') },
+  { label: 'Sons', icon: 'sound', go: (n) => n.navigate('Sounds') },
   { label: 'Lembretes', icon: 'bell', go: (n) => n.navigate('Reminders') },
   { label: 'Eventos', icon: 'note', go: (n) => n.navigate('EventLog') },
   { label: 'Local', icon: 'pin' }, // "em breve": definição pendente (TCC exclui geolocalização em tempo real)
