@@ -44,7 +44,7 @@ export function SleepScreen({ navigation, route }: Props) {
         <Text style={styles.text}>
           {session.finished
             ? 'O som parou. Durma bem.'
-            : `${soundLabel(sound)} · o volume baixa aos poucos e para em ${remainingLabel(session.remainingMs)}.`}
+            : `${soundLabel(sound)} · o volume baixa aos poucos e o som para daqui a ${remainingLabel(session.remainingMs)}.`}
         </Text>
         {!session.finished && <Text style={styles.small}>A tela fica ligada e escura até o som parar.</Text>}
       </View>
