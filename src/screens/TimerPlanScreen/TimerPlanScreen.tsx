@@ -23,7 +23,7 @@ export function TimerPlanScreen({ navigation, route }: Props) {
   const [minutes, setMinutes] = useState(preset?.minutes ?? 25)
   const [steps, setSteps] = useState<string[]>(preset?.steps ?? [])
   const [water, setWater] = useState(false)
-  const [sound, setSound] = useState<TimerSound>('NONE')
+  const [sound, setSound] = useState<TimerSound>(preset?.sound ?? 'NONE')
 
   const busy = session?.status === 'RUNNING' || session?.status === 'PAUSED'
 
