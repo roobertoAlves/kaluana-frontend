@@ -41,11 +41,12 @@ export function order(tasks: Task[], day: string, energy: number | null): Task[]
   )
 }
 
-const toMinutes = (hhmm: string) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3, 5))
+export const toMinutes = (hhmm: string) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3, 5))
 const toHHMM = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`
 
-export function layout(ordered: Task[], start: string, end: string): Pick<DayPlan, 'blocks' | 'unscheduled'> {
-  const blocks: DayPlanBlock[] = []
+/** {@code fixed}: blocos já decididos que terminam em {@code start} (ex.: o bloco em andamento, ao replanejar). */
+export function layout(ordered: Task[], start: string, end: string, fixed: DayPlanBlock[] = []): Pick<DayPlan, 'blocks' | 'unscheduled'> {
+  const blocks: DayPlanBlock[] = [...fixed]
   const unscheduled: DayPlan['unscheduled'] = []
   let cursor = toMinutes(start)
   const limit = toMinutes(end)
@@ -69,7 +70,15 @@ export function layout(ordered: Task[], start: string, end: string): Pick<DayPla
 
 /** Plano completo montado no aparelho (fonte RULES). */
 export function planLocally(tasks: Task[], day: string, energy: number | null, start: string, end: string): DayPlan {
-  return { date: day, energyLevel: energy, source: 'RULES', note: null, ...layout(order(plannable(tasks, day), day, energy), start, end) }
+  return {
+    date: day,
+    energyLevel: energy,
+    source: 'RULES',
+    note: null,
+    windowEnd: end,
+    ...layout(order(plannable(tasks, day), day, energy), start, end),
+    changes: [],
+  }
 }
 
 /** Próximo horário cheio de 5 minutos a partir de agora ("09:07" → "09:10"). */
