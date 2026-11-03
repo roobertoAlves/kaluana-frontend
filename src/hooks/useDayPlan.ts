@@ -6,7 +6,7 @@ import { useStoredObject } from './useStoredObject'
 import { fetchSavedPlan, replanDay, saveDayPlan } from '../services/dayPlanApi'
 import { ApiError, errorMessage } from '../services/http'
 import { readJson, todayKey, writeJson } from '../services/storage'
-import { nextSlot, planLocally } from '../features/plan/dayPlanner'
+import { planLocally } from '../features/plan/dayPlanner'
 import { clock, needsReplan, replanLocally } from '../features/plan/replanner'
 
 const CHECK_EVERY_MS = 60_000
@@ -25,11 +25,11 @@ const isOffline = (e: unknown) => e instanceof ApiError && e.status === 0
  * (ou só avisa, se o usuário desligou a reorganização automática). Com conta,
  * a API monta e replaneja; sem conta ou sem rede, as mesmas regras rodam aqui.
  */
-export function useDayPlan(tasks: { items: Task[]; loading: boolean }, energy: number | null) {
+export function useDayPlan(tasks: { items: Task[]; loading: boolean }, energy: number | null, day: string = todayKey()) {
   const { user, accessToken } = useAuth()
   const userId = user?.id ?? 'anon'
   const today = todayKey()
-  const cacheName = `day-plan:${today}`
+  const cacheName = `day-plan:${day}`
   const prefs = useStoredObject<PlanPrefs>('day-plan-prefs', { autoReplan: true })
 
   const [plan, setPlan] = useState<DayPlan | null>(null)
@@ -57,7 +57,7 @@ export function useDayPlan(tasks: { items: Task[]; loading: boolean }, energy: n
       setPlan(cached)
       if (!accessToken) return
       try {
-        const saved = await fetchSavedPlan(accessToken, today)
+        const saved = await fetchSavedPlan(accessToken, day)
         if (alive) await keep(saved ?? cached)
       } catch {
         // Sem rede: fica o plano do cache.
@@ -66,20 +66,20 @@ export function useDayPlan(tasks: { items: Task[]; loading: boolean }, energy: n
     return () => {
       alive = false
     }
-  }, [userId, accessToken, today, cacheName, keep])
+  }, [userId, accessToken, day, cacheName, keep])
 
-  async function build(end: string, assistant: boolean) {
-    const start = nextSlot()
+  /** Monta o plano de {@code day} entre {@code start} e {@code end} ("HH:MM", hora local). */
+  async function build(start: string, end: string, assistant: boolean) {
     if (start >= end) {
-      setError(`Já passou de ${end}. Escolha um horário mais tarde.`)
+      setError('O horário de início precisa ser antes do fim.')
       return
     }
     setError(null)
     setBusy(true)
     try {
-      await keep(accessToken ? await saveDayPlan(accessToken, today, { start, end, assistant }) : planLocally(tasks.items, today, energy, start, end))
+      await keep(accessToken ? await saveDayPlan(accessToken, day, { start, end, assistant }) : planLocally(tasks.items, day, energy, start, end))
     } catch (e) {
-      if (isOffline(e)) await keep({ ...planLocally(tasks.items, today, energy, start, end), note: OFFLINE_NOTE })
+      if (isOffline(e)) await keep({ ...planLocally(tasks.items, day, energy, start, end), note: OFFLINE_NOTE })
       else setError(errorMessage(e))
     } finally {
       setChanges([])

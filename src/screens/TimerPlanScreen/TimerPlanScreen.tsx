@@ -5,39 +5,37 @@ import type { RootStackParamList } from '../../navigation/types'
 import { Screen } from '../../components/ui/Screen'
 import { ArrowButton } from '../../components/ui/ArrowButton'
 import { ChipGroup, Field, SmallButton, formStyles } from '../../components/ui/forms'
+import { DurationField } from '../../components/ui/pickers/fields'
 import { useTimer } from '../../context/TimerContext'
-import { SOUND_OPTIONS } from '../../hooks/useAmbientSound'
 import { ensureNotificationSetup } from '../../services/notifications'
-import type { TimerSound } from '../../features/timer/timerSession'
 import { colors, spacing } from '../../styles/tokens'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TimerPlan'>
 
-const DURATIONS = [5, 10, 15, 25, 45].map((m) => ({ value: m, label: `${m} min` }))
+const PRESETS = [5, 15, 25, 45].map((m) => ({ value: m, label: `${m} min` }))
 
-/** T1 · planejar a sessão: tarefa, duração, etapas e lembrete de água. */
+/** T1 · planejar a sessão (1 de 2): tarefa, duração, etapas e lembrete de água. O som vem na etapa 2. */
 export function TimerPlanScreen({ navigation, route }: Props) {
   const preset = route.params?.preset
-  const { session, start } = useTimer()
+  const { session } = useTimer()
   const [task, setTask] = useState(preset?.task ?? '')
   const [minutes, setMinutes] = useState(preset?.minutes ?? 25)
   const [steps, setSteps] = useState<string[]>(preset?.steps ?? [])
   const [water, setWater] = useState(false)
-  const [sound, setSound] = useState<TimerSound>(preset?.sound ?? 'NONE')
 
   const busy = session?.status === 'RUNNING' || session?.status === 'PAUSED'
 
-  async function go() {
+  async function next() {
     if (water) await ensureNotificationSetup().catch(() => false)
-    start({ task, minutes, steps, water, sound, taskId: preset?.taskId ?? null })
-    navigation.replace('Timer')
+    navigation.navigate('TimerSound', { plan: { task, minutes, steps, water, taskId: preset?.taskId ?? null, sound: preset?.sound } })
   }
 
   return (
-    <Screen label="KALUANA · TEMPORIZADOR" title="Planejar sessão" onBack={() => navigation.goBack()}>
+    <Screen label="KALUANA · TEMPORIZADOR · 1 DE 2" title="Planejar sessão" onBack={() => navigation.goBack()}>
       {busy && <Text style={[formStyles.muted, { marginBottom: spacing[4] }]}>Já existe uma sessão em andamento. Começar outra substitui a atual.</Text>}
       <Field label="TAREFA" value={task} onChangeText={setTask} placeholder="Ex.: estudar, arrumar a mesa" maxLength={60} />
-      <ChipGroup label="DURAÇÃO" options={DURATIONS} value={minutes} onChange={setMinutes} />
+      <DurationField label="DURAÇÃO" minutes={minutes} onChange={setMinutes} max={600} />
+      <ChipGroup label="ATALHOS" options={PRESETS} value={minutes} onChange={setMinutes} />
 
       <Text style={[formStyles.sectionTitle, { marginTop: 0 }]}>ETAPAS (OPCIONAL, ATÉ 4)</Text>
       {steps.map((s, i) => (
@@ -59,14 +57,7 @@ export function TimerPlanScreen({ navigation, route }: Props) {
         <Switch value={water} onValueChange={setWater} accessibilityLabel="Lembrar de beber água" trackColor={{ true: colors.emberBright }} />
       </View>
 
-      <ChipGroup label="SOM AMBIENTE" options={SOUND_OPTIONS} value={sound} onChange={setSound} />
-      {sound !== 'NONE' && (
-        <Text style={[formStyles.muted, { marginTop: -spacing[2], marginBottom: spacing[4] }]}>
-          Toca em loop durante a sessão e pausa junto com ela. Use fones se estiver em lugar compartilhado.
-        </Text>
-      )}
-
-      <ArrowButton label="Começar" onPress={go} />
+      <ArrowButton label="Próxima etapa: som" onPress={next} />
     </Screen>
   )
 }

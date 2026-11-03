@@ -4,11 +4,13 @@ import { useAuth } from './AuthContext'
 import { newId, readJson, writeJson } from '../services/storage'
 import { registerTimerSession } from '../services/timerApi'
 import { cancelSessionAlerts, scheduleSessionAlerts } from '../services/notifications'
-import { addMinute, cancelTimer, pauseTimer, reevaluateTimer, resumeTimer, startTimer } from '../features/timer/timerSession'
+import { addMinute, cancelTimer, pauseTimer, reevaluateTimer, resumeTimer, setMuted, soundPlaying, startTimer } from '../features/timer/timerSession'
+import { useAmbientSound } from '../hooks/useAmbientSound'
 import type { StartOptions, TimerSession } from '../features/timer/timerSession'
 
-/** Sessões salvas por versões anteriores do app não tinham som nem tarefa. */
-const normalize = (s: TimerSession | null): TimerSession | null => (s ? { ...s, sound: s.sound ?? 'NONE', taskId: s.taskId ?? null } : null)
+/** Sessões salvas por versões anteriores do app não tinham som, tarefa nem "silenciado". */
+const normalize = (s: TimerSession | null): TimerSession | null =>
+  s ? { ...s, sound: s.sound ?? 'NONE', taskId: s.taskId ?? null, muted: s.muted ?? false } : null
 
 interface TimerContextValue {
   session: TimerSession | null
@@ -20,6 +22,8 @@ interface TimerContextValue {
   plusMinute: () => void
   cancel: () => void
   clear: () => void
+  /** Liga/silencia o som ambiente da sessão (o estado fica salvo na sessão). */
+  toggleMute: () => void
 }
 
 const Ctx = createContext<TimerContextValue | null>(null)
@@ -29,8 +33,11 @@ export function TimerProvider({ children }: { children: ReactNode }) {
   const { user, accessToken } = useAuth()
   const userId = user?.id ?? 'anon'
   const [session, setSession] = useState<TimerSession | null>(null)
-  const [now, setNow] = useState(Date.now())
+  const [now, setNow] = useState(() => Date.now())
   const ref = useRef<TimerSession | null>(null)
+  // RF9: o som segue a sessão, em qualquer tela: toca rodando, para ao pausar,
+  // silenciar ou encerrar. Fica aqui (e não na tela) para nunca ficar "preso".
+  useAmbientSound(session?.sound ?? 'NONE', soundPlaying(session))
 
   const commit = useCallback(
     (next: TimerSession | null) => {
@@ -116,8 +123,10 @@ export function TimerProvider({ children }: { children: ReactNode }) {
         commit(null)
         void cancelSessionAlerts().catch(() => {})
       },
+      toggleMute: () => {
+        if (ref.current) commit(setMuted(ref.current, !ref.current.muted))
+      },
     }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [session, now, commit],
   )
 

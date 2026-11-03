@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import type { RootStackParamList } from '../../navigation/types'
 import type { CheckIn, Reminder } from '../../types/domain'
 import { BottomMenu } from '../../components/ui/BottomMenu'
+import { ArrowButton } from '../../components/ui/ArrowButton'
 import { Icon } from '../../components/ui/Icons'
 import type { IconName } from '../../components/ui/Icons'
 import { useAuth } from '../../context/AuthContext'
@@ -80,9 +81,15 @@ export function HomeScreen({ navigation }: Props) {
           </Text>
 
           {user?.role === 'RESPONSIBLE' ? (
-            <Text style={styles.muted}>
-              Sua conta está vinculada como responsável. Você verá aqui apenas o que o usuário principal autorizar.
-            </Text>
+            <>
+              <Text style={styles.muted}>
+                Sua conta está vinculada como responsável. Você verá aqui apenas o que o usuário principal autorizar.
+              </Text>
+              {/* Relatório (e PDF) com o que foi liberado para esta conta. */}
+              <View style={{ marginTop: spacing[5] }}>
+                <ArrowButton label="Ver relatório" onPress={() => navigation.navigate('Report')} />
+              </View>
+            </>
           ) : (
             <>
               {/* H1 · cartão de lembrete */}

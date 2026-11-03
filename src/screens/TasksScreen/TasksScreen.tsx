@@ -1,84 +1,68 @@
 import { useMemo, useState } from 'react'
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import type { RootStackParamList } from '../../navigation/types'
-import type { Task, TaskPriority } from '../../types/domain'
+import type { Task } from '../../types/domain'
 import { Screen } from '../../components/ui/Screen'
-import { ChipGroup, SmallButton, formStyles } from '../../components/ui/forms'
+import { formStyles } from '../../components/ui/forms'
 import { Icon } from '../../components/ui/Icons'
 import { PressableScale } from '../../components/motion/PressableScale'
+import { Sheet } from '../../components/ui/pickers/Sheet'
 import { useAuth } from '../../context/AuthContext'
 import { useTasks } from '../../hooks/useTasks'
 import { useAssistantStatus } from '../../hooks/useAssistantStatus'
 import { suggestSteps } from '../../services/assistantApi'
 import { errorMessage } from '../../services/http'
 import { newId, todayKey } from '../../services/storage'
-import { focusSteps, sortForList } from '../../features/tasks/taskModel'
+import { GROUP_TITLE, doneConfirmation, focusSteps, groupTasks } from '../../features/tasks/taskModel'
 import { parseQuickTask } from '../../features/tasks/quickAdd'
 import type { QuickKind } from '../../features/tasks/quickAdd'
 import { TaskRow } from './TaskRow'
+import { TaskFormSheet } from './TaskFormSheet'
 import { QuickChips } from './QuickChips'
 import { colors, fonts, radius, spacing } from '../../styles/tokens'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Tasks'>
 
-const PRIORITIES: { value: TaskPriority; label: string }[] = [
-  { value: 'LOW', label: 'Baixa' },
-  { value: 'MEDIUM', label: 'Média' },
-  { value: 'HIGH', label: 'Alta' },
-]
-const DURATIONS = [0, 10, 25, 50].map((m) => ({ value: m, label: m === 0 ? 'Não sei' : `${m} min` }))
-const WHEN = [
-  { value: 'today', label: 'Hoje' },
-  { value: 'tomorrow', label: 'Amanhã' },
-  { value: 'none', label: 'Sem data' },
-] as const
-
-function dueFrom(when: (typeof WHEN)[number]['value']): string | null {
-  if (when === 'none') return null
-  const d = new Date()
-  if (when === 'tomorrow') d.setDate(d.getDate() + 1)
-  return todayKey(d)
-}
+type Form = { mode: 'new' } | { mode: 'edit'; task: Task }
+type Confirm = { kind: 'done' | 'delete'; task: Task }
 
 /**
- * RF5/RF15: "o que eu preciso fazer?" Lista curta de pendentes, com microetapas
- * sob demanda. A tarefa pode ser escrita numa frase ("estudar amanhã 30min !alta").
+ * RF5/RF15: "o que eu preciso fazer?". A tarefa pode ser escrita numa frase
+ * ("estudar amanhã 30min !alta") ou no formulário completo; a lista fica
+ * agrupada por quando fazer, com confirmação antes de concluir ou apagar.
  */
 export function TasksScreen({ navigation }: Props) {
   const { accessToken } = useAuth()
   const tasks = useTasks()
   const assistant = useAssistantStatus()
   const [title, setTitle] = useState('')
-  const [more, setMore] = useState(false)
-  const [priority, setPriority] = useState<TaskPriority>('MEDIUM')
-  const [minutes, setMinutes] = useState(0)
-  const [when, setWhen] = useState<(typeof WHEN)[number]['value']>('today')
+  const [ignored, setIgnored] = useState<ReadonlySet<QuickKind>>(new Set())
+  const [form, setForm] = useState<Form | null>(null)
+  const [confirm, setConfirm] = useState<Confirm | null>(null)
   const [expanded, setExpanded] = useState<string | null>(null)
   const [showDone, setShowDone] = useState(false)
   const [localError, setLocalError] = useState<string | null>(null)
-  const [ignored, setIgnored] = useState<ReadonlySet<QuickKind>>(new Set())
   const today = todayKey()
   const parsed = useMemo(() => parseQuickTask(title, new Date(), ignored), [title, ignored])
 
-  const sorted = sortForList(tasks.items)
-  const pending = sorted.filter((t) => !t.done)
-  const done = sorted.filter((t) => t.done)
+  const groups = groupTasks(tasks.items, today)
+  const pendingCount = tasks.items.filter((t) => !t.done).length
+  const todayCount = groups.filter((g) => g.key === 'today' || g.key === 'overdue').reduce((n, g) => n + g.tasks.length, 0)
 
-  async function create() {
+  /** RF15: o que a frase disse vira a tarefa; o que ela não disse fica no padrão. */
+  async function quickAdd() {
     if (!parsed.title) return
-    // O que a frase disse vale mais que as opções; o resto vem das opções.
-    const task: Task = {
+    const saved = await tasks.add({
       id: newId(),
       title: parsed.title,
-      priority: parsed.priority ?? priority,
-      estimatedMinutes: parsed.estimatedMinutes ?? (minutes || null),
-      dueDate: parsed.dueDate ?? dueFrom(when),
+      priority: parsed.priority ?? 'MEDIUM',
+      estimatedMinutes: parsed.estimatedMinutes ?? null,
+      dueDate: parsed.dueDate ?? today,
       done: false,
       completedAt: null,
       steps: parsed.steps.map((text) => ({ id: newId(), text, done: false })),
-    }
-    const saved = await tasks.add(task)
+    })
     if (!saved) return
     changeTitle('')
     setExpanded(saved.id)
@@ -89,11 +73,20 @@ export function TasksScreen({ navigation }: Props) {
     if (!text.trim()) setIgnored(new Set())
   }
 
-  function confirmDelete(task: Task) {
-    Alert.alert(`Apagar "${task.title}"?`, 'As microetapas também serão apagadas.', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Apagar', style: 'destructive', onPress: () => void tasks.remove(task.id) },
-    ])
+  async function save(task: Task) {
+    const isNew = form?.mode === 'new'
+    const saved = isNew ? await tasks.add(task) : await tasks.upsert(task)
+    if (!saved) return
+    setForm(null)
+    if (isNew) setExpanded(saved.id)
+  }
+
+  async function confirmAction() {
+    if (!confirm) return
+    const { kind, task } = confirm
+    setConfirm(null)
+    if (kind === 'done') await tasks.setDone(task, true)
+    else await tasks.remove(task.id)
   }
 
   async function suggest(task: Task): Promise<string[] | null> {
@@ -116,7 +109,8 @@ export function TasksScreen({ navigation }: Props) {
       expanded={expanded === task.id}
       assistantEnabled={assistant.enabled}
       onToggleExpand={() => setExpanded(expanded === task.id ? null : task.id)}
-      onToggleDone={() => void tasks.setDone(task, !task.done)}
+      // Concluir pede confirmação; reabrir é direto (desfaz um engano).
+      onToggleDone={() => (task.done ? void tasks.setDone(task, false) : setConfirm({ kind: 'done', task }))}
       onToggleStep={(stepId) => void tasks.toggleStep(task, stepId)}
       onAddStep={(text) => tasks.addStep(task, text)}
       onRemoveStep={(stepId) => void tasks.removeStep(task, stepId)}
@@ -125,43 +119,19 @@ export function TasksScreen({ navigation }: Props) {
           preset: { task: task.title.slice(0, 60), minutes: task.estimatedMinutes ?? 25, steps: focusSteps(task), taskId: task.id },
         })
       }
-      onDelete={() => confirmDelete(task)}
+      onEdit={() => setForm({ mode: 'edit', task })}
+      onDelete={() => setConfirm({ kind: 'delete', task })}
       onSuggestSteps={() => suggest(task)}
     />
   )
 
   return (
     <Screen label="KALUANA · TAREFAS" title="Tarefas" onBack={() => navigation.goBack()} error={tasks.error ?? localError}>
-      <View style={styles.addRow}>
-        <TextInput
-          value={title}
-          onChangeText={changeTitle}
-          placeholder="Ex.: estudar amanhã 30min !alta"
-          placeholderTextColor={colors.sand}
-          accessibilityLabel="Nova tarefa"
-          maxLength={400}
-          returnKeyType="done"
-          onSubmitEditing={create}
-          style={styles.addInput}
-        />
-        <PressableScale onPress={create} accessibilityRole="button" accessibilityLabel="Adicionar tarefa" style={styles.addButton}>
-          <Icon name="plus" color={colors.white} />
-        </PressableScale>
-      </View>
-      <QuickChips parsed={parsed} onUndo={(kind) => setIgnored(new Set([...ignored, kind]))} />
-
-      <SmallButton label={more ? 'Menos opções' : 'Prioridade, duração e data'} onPress={() => setMore(!more)} />
-      {more && (
-        <View style={{ marginTop: spacing[3] }}>
-          <ChipGroup label="PRIORIDADE" options={PRIORITIES} value={priority} onChange={setPriority} />
-          <ChipGroup label="QUANTO TEMPO LEVA" options={DURATIONS} value={minutes} onChange={setMinutes} />
-          <ChipGroup label="QUANDO" options={WHEN.map((w) => ({ value: w.value, label: w.label }))} value={when} onChange={setWhen} />
-        </View>
-      )}
-
-      <View style={styles.headerRow}>
-        <Text style={formStyles.sectionTitle}>PENDENTES ({pending.length})</Text>
-        {pending.length > 0 && (
+      <View style={styles.summary}>
+        <Text style={styles.summaryText}>
+          {pendingCount === 0 ? 'Nada pendente.' : `${pendingCount} pendente${pendingCount === 1 ? '' : 's'} · ${todayCount} para hoje`}
+        </Text>
+        {pendingCount > 0 && (
           <Pressable onPress={() => navigation.navigate('DayPlan')} accessibilityRole="button" hitSlop={8} style={styles.planLink}>
             <Icon name="calendar" size={18} />
             <Text style={styles.planLinkText}>Planejar o dia</Text>
@@ -169,29 +139,90 @@ export function TasksScreen({ navigation }: Props) {
         )}
       </View>
 
-      {!tasks.loading && pending.length === 0 && (
+      <View style={styles.addRow}>
+        <TextInput
+          value={title}
+          onChangeText={changeTitle}
+          placeholder="Ex.: estudar amanhã 30min !alta"
+          placeholderTextColor={colors.sand}
+          accessibilityLabel="Nova tarefa numa frase"
+          maxLength={400}
+          returnKeyType="done"
+          onSubmitEditing={() => void quickAdd()}
+          style={styles.addInput}
+        />
+        <PressableScale onPress={() => void quickAdd()} accessibilityRole="button" accessibilityLabel="Adicionar tarefa" style={styles.addButton}>
+          <Icon name="plus" color={colors.white} />
+        </PressableScale>
+      </View>
+      <QuickChips parsed={parsed} onUndo={(kind) => setIgnored(new Set([...ignored, kind]))} />
+      <Pressable onPress={() => setForm({ mode: 'new' })} accessibilityRole="button" hitSlop={8} style={styles.planLink}>
+        <Text style={styles.planLinkText}>Nova tarefa com detalhes (data, duração, microetapas)</Text>
+      </Pressable>
+
+      {!tasks.loading && tasks.items.length === 0 && (
         <View style={styles.empty}>
-          <Text style={formStyles.muted}>Nada pendente. Escreva acima a próxima coisa a fazer; dá para dividir em passos pequenos depois.</Text>
+          <Text style={formStyles.itemTitle}>Comece pela próxima coisa a fazer</Text>
+          <Text style={formStyles.muted}>Escreva numa frase, como “ligar para a clínica amanhã 10min”. Depois, abra a tarefa para dividir em passos pequenos.</Text>
         </View>
       )}
-      {pending.map(row)}
 
-      {done.length > 0 && (
-        <>
-          <SmallButton label={showDone ? `Esconder concluídas (${done.length})` : `Ver concluídas (${done.length})`} onPress={() => setShowDone(!showDone)} />
-          {showDone && done.slice(0, 30).map(row)}
-        </>
+      {groups.map((g) =>
+        g.key === 'done' ? (
+          <View key={g.key}>
+            <Pressable onPress={() => setShowDone(!showDone)} accessibilityRole="button" accessibilityState={{ expanded: showDone }} style={styles.doneToggle}>
+              <Text style={formStyles.sectionTitle}>
+                {GROUP_TITLE.done} ({g.tasks.length})
+              </Text>
+              <Text style={styles.planLinkText}>{showDone ? 'Esconder' : 'Mostrar'}</Text>
+            </Pressable>
+            {showDone && g.tasks.slice(0, 30).map(row)}
+          </View>
+        ) : (
+          <View key={g.key}>
+            <Text style={[formStyles.sectionTitle, g.key === 'overdue' && { color: colors.danger }]}>
+              {GROUP_TITLE[g.key]} ({g.tasks.length})
+            </Text>
+            {g.tasks.map(row)}
+          </View>
+        ),
       )}
+
+      {form && (
+        <TaskFormSheet
+          key={form.mode === 'edit' ? form.task.id : 'new'}
+          visible
+          task={form.mode === 'edit' ? form.task : null}
+          onCancel={() => setForm(null)}
+          onSave={(t) => void save(t)}
+        />
+      )}
+
+      <Sheet
+        visible={!!confirm}
+        title={confirm?.kind === 'delete' ? `Apagar "${confirm.task.title}"?` : `Concluir "${confirm?.task.title ?? ''}"?`}
+        confirmLabel={confirm?.kind === 'delete' ? 'Apagar' : 'Concluir'}
+        danger={confirm?.kind === 'delete'}
+        onCancel={() => setConfirm(null)}
+        onConfirm={() => void confirmAction()}
+      >
+        <Text style={styles.confirmText}>
+          {confirm?.kind === 'delete' ? 'As microetapas também serão apagadas. Isso não pode ser desfeito.' : confirm ? doneConfirmation(confirm.task) : ''}
+        </Text>
+      </Sheet>
     </Screen>
   )
 }
 
 const styles = StyleSheet.create({
+  summary: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing[4], gap: spacing[3] },
+  summaryText: { flex: 1, fontFamily: fonts.body, fontSize: 15, color: colors.textSecondary },
   addRow: { flexDirection: 'row', gap: spacing[2], alignItems: 'center' },
   addInput: { flex: 1, minHeight: 52, borderWidth: 1.5, borderColor: colors.ink, borderRadius: radius.md, paddingHorizontal: spacing[4], fontFamily: fonts.body, fontSize: 17, color: colors.ink, backgroundColor: colors.bgSurface },
   addButton: { width: 52, height: 52, borderRadius: radius.md, backgroundColor: colors.emberBright, alignItems: 'center', justifyContent: 'center' },
-  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  planLink: { flexDirection: 'row', alignItems: 'center', gap: spacing[1], minHeight: 44, marginTop: spacing[3] },
+  planLink: { flexDirection: 'row', alignItems: 'center', gap: spacing[1], minHeight: 44 },
   planLinkText: { fontFamily: fonts.bodyBold, fontSize: 14, color: colors.ink, textDecorationLine: 'underline' },
-  empty: { borderWidth: 1, borderStyle: 'dashed', borderColor: colors.sand, borderRadius: radius.lg, padding: spacing[4] },
+  empty: { borderWidth: 1, borderStyle: 'dashed', borderColor: colors.sand, borderRadius: radius.lg, padding: spacing[4], gap: spacing[1], marginTop: spacing[5] },
+  doneToggle: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44 },
+  confirmText: { fontFamily: fonts.body, fontSize: 16, lineHeight: 22, color: colors.ink, textAlign: 'center' },
 })

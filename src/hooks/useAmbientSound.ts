@@ -51,6 +51,8 @@ export function useAmbientSound(sound: TimerSound, playing: boolean, volume: num
     player.current = p
     return () => {
       player.current = null
+      // pause() antes de remove(): no Android, liberar sem pausar deixava o som tocando.
+      p.pause()
       p.remove()
     }
   }, [sound, playing])

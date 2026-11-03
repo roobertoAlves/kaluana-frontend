@@ -17,6 +17,7 @@ import type { LinkedUser } from '../../types'
 import { DEFAULT_ACCESS } from '../../types/domain'
 import type { AccessSettings } from '../../types/domain'
 import { colors, fonts, radius, spacing } from '../../styles/tokens'
+import { GrantedSummary, LinkPermissionsCard } from './LinkPermissionsCard'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>
 
@@ -117,9 +118,11 @@ export function SettingsScreen({ navigation }: Props) {
               {error && <Text style={styles.errorText} accessibilityRole="alert">{error}</Text>}
             </View>
 
-            <Text style={styles.section}>QUEM PODE VER MEUS DADOS</Text>
+            <Text style={styles.section}>PADRÃO PARA NOVAS CONEXÕES</Text>
             <View style={styles.box}>
-              <Text style={styles.desc}>Tudo começa desligado. Você escolhe o que compartilhar e pode mudar quando quiser.</Text>
+              <Text style={styles.desc}>
+                Vale para quem se conectar a partir de agora. Depois, ajuste o que cada pessoa pode ver em “Pessoas conectadas”.
+              </Text>
               {ACCESS_ROWS.map(({ key, label }) => (
                 <View key={key} style={styles.accessRow}>
                   <Text style={styles.accessLabel}>{label}</Text>
@@ -193,14 +196,24 @@ function LinkedPeople({ token, isPrimary }: { token: string; isPrimary: boolean 
       <Text style={styles.section}>{isPrimary ? 'PESSOAS CONECTADAS' : 'CONTA VINCULADA'}</Text>
       <View style={styles.box}>
         {links.length === 0 && <Text style={styles.desc}>{isPrimary ? 'Ninguém conectado ainda.' : 'Nenhuma conta vinculada.'}</Text>}
-        {links.map((l) => (
-          <View key={l.userId} style={styles.accessRow}>
-            <Text style={styles.accessLabel}>{l.name}</Text>
-            <Pressable onPress={() => confirmUnlink(l)} accessibilityRole="button" hitSlop={8}>
-              <Text style={styles.unlinkText}>Desfazer</Text>
-            </Pressable>
-          </View>
-        ))}
+        {isPrimary && links.length > 0 && (
+          <Text style={styles.desc}>Escolha o perfil de cada pessoa e o que ela pode ver. Profissionais com “Relatórios e PDF” geram o relatório só com o que estiver ligado.</Text>
+        )}
+        {links.map((l) =>
+          isPrimary ? (
+            <LinkPermissionsCard key={l.userId} token={token} link={l} onUnlink={() => confirmUnlink(l)} />
+          ) : (
+            <View key={l.userId} style={styles.linkedRow}>
+              <View style={styles.accessRow}>
+                <Text style={styles.accessLabel}>{l.name}</Text>
+                <Pressable onPress={() => confirmUnlink(l)} accessibilityRole="button" hitSlop={8}>
+                  <Text style={styles.unlinkText}>Desfazer</Text>
+                </Pressable>
+              </View>
+              <GrantedSummary link={l} />
+            </View>
+          ),
+        )}
         {error && <Text style={styles.errorText} accessibilityRole="alert">{error}</Text>}
       </View>
     </>
@@ -252,6 +265,7 @@ const styles = StyleSheet.create({
   errorText: { fontFamily: fonts.body, fontSize: 13, color: colors.danger, marginTop: spacing[3] },
   accessRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: 48 },
   accessLabel: { fontFamily: fonts.body, fontSize: 16, color: colors.ink },
+  linkedRow: { marginBottom: spacing[2] },
   unlinkText: { fontFamily: fonts.bodyBold, fontSize: 14, color: colors.danger, textDecorationLine: 'underline' },
   logout: { alignSelf: 'center', minHeight: 48, justifyContent: 'center', marginTop: spacing[5] },
   logoutText: { fontFamily: fonts.bodyBold, fontSize: 15, color: colors.danger, textDecorationLine: 'underline' },
