@@ -63,6 +63,11 @@ function openFromTap(t: NotificationTap) {
   else navRef.navigate('ReminderAlert', { title: t.title, reminderId: t.reminderId })
 }
 
+/** Renovação da sessão falhou (ex.: 30 dias sem uso): volta para o login. */
+function goToLogin() {
+  if (navRef.isReady()) navRef.reset({ index: 0, routes: [{ name: 'Login' }] })
+}
+
 export default function App() {
   const [configReady, setConfigReady] = useState(false)
   const [introSeen, setIntroSeen] = useState(false)
@@ -100,7 +105,7 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }} onLayout={onLayoutRootView}>
       <SafeAreaProvider>
-        <AuthProvider>
+        <AuthProvider onExpired={goToLogin}>
           <TimerProvider>
           <NavigationContainer
             ref={navRef}

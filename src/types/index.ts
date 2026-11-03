@@ -19,6 +19,8 @@ export interface LinkedUser {
 
 export interface AuthResponse {
   accessToken: string
+  /** RNF4: troca o token de acesso vencido sem pedir login de novo. */
+  refreshToken?: string
   user: AuthenticatedUser
 }
 

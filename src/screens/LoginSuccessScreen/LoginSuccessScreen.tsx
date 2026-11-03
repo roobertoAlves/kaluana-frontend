@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { Animated, StyleSheet, Text, View } from 'react-native'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -11,8 +11,8 @@ type Props = NativeStackScreenProps<RootStackParamList, 'LoginSuccess'>
 export function LoginSuccessScreen({ navigation }: Props) {
   const { user } = useAuth()
   const insets = useSafeAreaInsets()
-  const opacity = useRef(new Animated.Value(0)).current
-  const translateY = useRef(new Animated.Value(16)).current
+  const [opacity] = useState(() => new Animated.Value(0))
+  const [translateY] = useState(() => new Animated.Value(16))
 
   useEffect(() => {
     Animated.parallel([
@@ -25,7 +25,7 @@ export function LoginSuccessScreen({ navigation }: Props) {
     }, 2000)
 
     return () => clearTimeout(timer)
-  }, [])
+  }, [navigation, opacity, translateY])
 
   const firstName = user?.name?.split(' ')[0] ?? ''
 

@@ -32,8 +32,16 @@ function registerResponsible(payload: RegisterResponsiblePayload) {
   return apiRequest<AuthResponse>('/api/auth/register/responsible', { method: 'POST', body: payload })
 }
 
+function refreshSession(refreshToken: string) {
+  return apiRequest<AuthResponse>('/api/auth/refresh', { method: 'POST', body: { refreshToken }, retryOn401: false })
+}
+
+function logout(refreshToken: string) {
+  return apiRequest<void>('/api/auth/logout', { method: 'POST', body: { refreshToken }, retryOn401: false })
+}
+
 function generateCode(token: string) {
   return apiRequest<GenerateCodeResponse>('/api/pairing/generate-code', { method: 'POST', token })
 }
 
-export { login, registerPrimary, registerResponsible, validateCode, generateCode }
+export { login, registerPrimary, registerResponsible, validateCode, generateCode, refreshSession, logout }
