@@ -53,6 +53,15 @@ export interface AccessSettings {
 
 export const DEFAULT_ACCESS: AccessSettings = { events: false, checkins: false, usage: false, reports: false }
 
+/** Perfil de quem está do outro lado do vínculo. */
+export type LinkRelationship = 'FAMILY' | 'HEALTH_PROFESSIONAL' | 'OTHER'
+
+/** RF8: autorização de uma pessoa vinculada (cada vínculo tem a sua). */
+export interface LinkPermissions extends AccessSettings {
+  relationship: LinkRelationship
+  tasks: boolean
+}
+
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH'
 
 export interface TaskStep {

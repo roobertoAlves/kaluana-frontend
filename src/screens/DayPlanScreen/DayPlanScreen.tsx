@@ -5,7 +5,8 @@ import type { RootStackParamList } from '../../navigation/types'
 import type { CheckIn, DayPlanBlock } from '../../types/domain'
 import { Screen } from '../../components/ui/Screen'
 import { ArrowButton } from '../../components/ui/ArrowButton'
-import { ChipGroup, SmallButton, formStyles } from '../../components/ui/forms'
+import { SmallButton, formStyles } from '../../components/ui/forms'
+import { DateField, TimeField } from '../../components/ui/pickers/fields'
 import { FadeIn } from '../../components/motion/FadeIn'
 import { PressableScale } from '../../components/motion/PressableScale'
 import { Icon } from '../../components/ui/Icons'
@@ -16,13 +17,16 @@ import { useDayPlan } from '../../hooks/useDayPlan'
 import { checkInsSource } from '../../services/checkInsApi'
 import { todayKey } from '../../services/storage'
 import { focusSteps } from '../../features/tasks/taskModel'
+import { nextSlot } from '../../features/plan/dayPlanner'
+import { dayLabel } from '../../features/time/timeValues'
 import { LEVEL_LABEL } from '../../features/reports/buildReport'
 import { colors, fonts, radius, spacing } from '../../styles/tokens'
 import { ReplanNotice } from './ReplanNotice'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'DayPlan'>
 
-const ENDS = ['12:00', '18:00', '22:00'].map((t) => ({ value: t, label: `até ${t}` }))
+const DEFAULT_START = '08:00'
+const DEFAULT_END = '22:00'
 
 const ENERGY_HINT: Record<number, string> = {
   1: 'Dia difícil: o plano começa pelas tarefas mais curtas.',
@@ -32,16 +36,24 @@ const ENERGY_HINT: Record<number, string> = {
   5: 'Dia tranquilo: as tarefas importantes e longas vêm antes.',
 }
 
-/** RF10/RF11/RF14: "o que faço agora e depois?" Linha do tempo do resto do dia, que se reorganiza quando o dia muda. */
+/**
+ * RF10/RF11/RF14: "o que faço agora e depois?" Linha do tempo de um dia (hoje
+ * ou outro), com início e fim escolhidos no relógio. O plano de hoje se
+ * reorganiza sozinho quando o dia muda.
+ */
 export function DayPlanScreen({ navigation }: Props) {
   const tasks = useTasks()
   const { items: checkins } = useCollection<CheckIn>(checkInsSource)
   const assistant = useAssistantStatus()
-  const [end, setEnd] = useState('22:00')
-  const [useAssistant, setUseAssistant] = useState(false)
   const today = todayKey()
-  const energy = checkins.find((c) => c.date === today)?.level ?? null
-  const day = useDayPlan(tasks, energy)
+  const [date, setDate] = useState(today)
+  const isToday = date === today
+  // Hoje começa no próximo horário cheio de 5 min; outros dias, às 08:00.
+  const [start, setStart] = useState(() => (nextSlot() > DEFAULT_START ? nextSlot() : DEFAULT_START))
+  const [end, setEnd] = useState(DEFAULT_END)
+  const [useAssistant, setUseAssistant] = useState(false)
+  const energy = checkins.find((c) => c.date === date)?.level ?? null
+  const day = useDayPlan(tasks, energy, date)
   const { plan } = day
 
   function focus(block: DayPlanBlock) {
@@ -52,18 +64,36 @@ export function DayPlanScreen({ navigation }: Props) {
     })
   }
 
-  const now = day.now
+  const now = isToday ? day.now : '00:00'
+  const earliest = isToday ? nextSlot() : '00:00'
+  // Hoje não dá para começar no passado: o início acompanha o relógio.
+  const effectiveStart = start < earliest ? earliest : start
+
+  function changeDate(d: string) {
+    setDate(d)
+    setStart(d === today ? (nextSlot() > DEFAULT_START ? nextSlot() : DEFAULT_START) : DEFAULT_START)
+  }
   const pendingCount = tasks.items.filter((t) => !t.done).length
 
   return (
     <Screen label="KALUANA · PLANO DO DIA" title="Plano do dia" onBack={() => navigation.goBack()} error={day.error}>
       <View style={styles.energy}>
-        <Text style={styles.energyTitle}>{energy ? LEVEL_LABEL[energy] : 'Sem check-in hoje'}</Text>
-        <Text style={formStyles.muted}>{energy ? ENERGY_HINT[energy] : 'Com o check-in, o plano se ajusta ao seu dia.'}</Text>
-        {!energy && <SmallButton label="Fazer check-in agora" onPress={() => navigation.navigate('CheckIn')} />}
+        <Text style={styles.energyTitle}>{energy ? LEVEL_LABEL[energy] : isToday ? 'Sem check-in hoje' : `Plano para ${dayLabel(date)}`}</Text>
+        <Text style={formStyles.muted}>{energy ? ENERGY_HINT[energy] : isToday ? 'Com o check-in, o plano se ajusta ao seu dia.' : 'Sem check-in para esse dia: o plano segue prioridade e duração.'}</Text>
+        {!energy && isToday && <SmallButton label="Fazer check-in agora" onPress={() => navigation.navigate('CheckIn')} />}
       </View>
 
-      <ChipGroup label="PLANEJAR DE AGORA" options={ENDS} value={end} onChange={setEnd} />
+      <DateField label="DIA DO PLANO" value={date} onChange={changeDate} minimumDate={new Date()} />
+      <View style={styles.times}>
+        <View style={{ flex: 1 }}>
+          <TimeField label="COMEÇAR ÀS" value={effectiveStart} onChange={setStart} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <TimeField label="TERMINAR ÀS" value={end} onChange={setEnd} />
+        </View>
+      </View>
+      {isToday && start < earliest && <Text style={styles.source}>Já passou de {start}: o plano começa às {earliest}.</Text>}
+      {!isToday && <Text style={styles.source}>Planejando {dayLabel(date)}. As tarefas com data até esse dia entram no plano.</Text>}
 
       {assistant.enabled && (
         <View style={[formStyles.row, styles.assistantRow]}>
@@ -75,7 +105,7 @@ export function DayPlanScreen({ navigation }: Props) {
         </View>
       )}
 
-      <ArrowButton label={day.busy && !plan ? 'Montando...' : plan ? 'Montar de novo' : 'Montar meu plano'} onPress={() => day.build(end, useAssistant && assistant.enabled)} />
+      <ArrowButton label={day.busy && !plan ? 'Montando...' : plan ? 'Montar de novo' : 'Montar meu plano'} onPress={() => day.build(effectiveStart, end, useAssistant && assistant.enabled)} />
 
       {plan && (
         <View style={{ marginTop: spacing[5] }}>
@@ -153,6 +183,7 @@ function minutesBetween(start: string, end: string): number {
 }
 
 const styles = StyleSheet.create({
+  times: { flexDirection: 'row', gap: spacing[3] },
   energy: { backgroundColor: colors.bgSurface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.cream, padding: spacing[4], marginBottom: spacing[4] },
   energyTitle: { fontFamily: fonts.display, fontSize: 17, color: colors.ink, marginBottom: spacing[1] },
   assistantRow: { marginBottom: spacing[4] },

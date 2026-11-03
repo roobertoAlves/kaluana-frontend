@@ -23,6 +23,20 @@ interface RequestOptions {
   method?: HttpMethod
   body?: unknown
   token?: string | null
+  /** Padrão: com token, um 401 tenta renovar a sessão e repete o pedido uma vez. */
+  retryOn401?: boolean
+}
+
+/**
+ * RNF4: quem sabe renovar a sessão é o AuthProvider (guarda o token de
+ * renovação). Ele se registra aqui; devolve o token de acesso novo, ou null
+ * quando não deu para renovar (aí a pessoa precisa entrar de novo).
+ */
+type SessionRefresher = () => Promise<string | null>
+let sessionRefresher: SessionRefresher | null = null
+
+export function setSessionRefresher(fn: SessionRefresher | null) {
+  sessionRefresher = fn
 }
 
 const FALLBACK_MESSAGES: Record<number, string> = {
@@ -35,7 +49,19 @@ const FALLBACK_MESSAGES: Record<number, string> = {
   429: 'Muitas tentativas seguidas. Aguarde um pouco antes de tentar de novo.',
 }
 
-export async function apiRequest<TResponse>(path: string, { method = 'GET', body, token }: RequestOptions = {}): Promise<TResponse> {
+export async function apiRequest<TResponse>(path: string, options: RequestOptions = {}): Promise<TResponse> {
+  const { token, retryOn401 = true } = options
+  try {
+    return await send<TResponse>(path, options)
+  } catch (e) {
+    if (!(e instanceof ApiError) || e.status !== 401 || !token || !retryOn401 || !sessionRefresher) throw e
+    const fresh = await sessionRefresher()
+    if (!fresh) throw e
+    return send<TResponse>(path, { ...options, token: fresh })
+  }
+}
+
+async function send<TResponse>(path: string, { method = 'GET', body, token }: RequestOptions): Promise<TResponse> {
   const headers: Record<string, string> = {}
   if (body !== undefined) headers['Content-Type'] = 'application/json'
   if (token) headers.Authorization = `Bearer ${token}`

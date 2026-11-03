@@ -1,97 +1,89 @@
 import { Platform } from 'react-native'
-import type { TimestampTrigger } from '@notifee/react-native'
+import * as Notifications from 'expo-notifications'
+import { AndroidImportance } from 'expo-notifications'
+import { nextFireTime } from '../features/reminders/reminderModel'
 import type { Reminder, ReminderInsistence } from '../types/domain'
 
 /**
- * Adaptador de notificações locais (RNF2). Usa Notifee, como na Seção 2.4.
+ * Adaptador de notificações locais (RNF2) sobre o expo-notifications.
  * Todo o código nativo fica neste arquivo: trocar de biblioteca não afeta telas.
- * Requer dev build (expo-dev-client); não roda no Expo Go.
+ * Funciona no build de desenvolvimento; no Expo Go, notificações locais podem
+ * não estar disponíveis, então toda chamada falha de forma silenciosa.
  *
  * Insistência = notificações de repetição após a principal:
  *  LOW: nenhuma | MEDIUM: +5 e +10 min | HIGH: +2, +4, +6 e +8 min.
  */
-type NotifeeModule = typeof import('@notifee/react-native')
-
-/**
- * Carregamento tardio: no Expo Go (sem código nativo do Notifee) o app abre
- * normalmente e só o agendamento falha, com erro tratado pelas telas.
- */
-function loadNotifee(): NotifeeModule | null {
-  try {
-    return require('@notifee/react-native') as NotifeeModule
-  } catch {
-    return null
-  }
-}
-
-function needNotifee(): NotifeeModule {
-  const m = loadNotifee()
-  if (!m) throw new Error('NOTIFEE_UNAVAILABLE')
-  return m
-}
 
 const CHANNEL_ID = 'lembretes'
 const FOLLOW_UPS: Record<ReminderInsistence, number[]> = { LOW: [], MEDIUM: [5, 10], HIGH: [2, 4, 6, 8] }
 
-export async function ensureNotificationSetup(): Promise<boolean> {
-  const { default: notifee, AndroidImportance } = needNotifee()
-  const settings = await notifee.requestPermission()
-  // authorizationStatus: 0 negado, 1 autorizado, 2 provisório
-  if (settings.authorizationStatus === 0) return false
-  if (Platform.OS === 'android') {
-    await notifee.createChannel({ id: CHANNEL_ID, name: 'Lembretes', importance: AndroidImportance.HIGH })
-  }
-  return true
+// Com o app aberto, a notificação aparece como banner e toca o som.
+try {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({ shouldShowBanner: true, shouldShowList: true, shouldPlaySound: true, shouldSetBadge: false }),
+  })
+} catch {
+  // Sem módulo nativo (ex.: web): segue sem notificações.
 }
 
-/** Próximo horário em que `time` ("HH:MM") ocorre, menos a antecedência. */
-export function nextFireTime(time: string, leadMinutes: number, now: Date = new Date()): Date {
-  const [h, m] = time.split(':').map(Number)
-  const target = new Date(now)
-  target.setHours(h, m, 0, 0)
-  let fire = new Date(target.getTime() - leadMinutes * 60_000)
-  while (fire.getTime() <= now.getTime()) fire = new Date(fire.getTime() + 24 * 60 * 60_000)
-  return fire
+export async function ensureNotificationSetup(): Promise<boolean> {
+  try {
+    const current = await Notifications.getPermissionsAsync()
+    const status = current.granted ? current : await Notifications.requestPermissionsAsync()
+    if (!status.granted) return false
+    if (Platform.OS === 'android') {
+      await Notifications.setNotificationChannelAsync(CHANNEL_ID, { name: 'Lembretes', importance: AndroidImportance.HIGH })
+    }
+    return true
+  } catch {
+    return false
+  }
 }
+
+// A regra do próximo disparo fica no modelo (testável); reexportada para a Home.
+export { nextFireTime }
 
 const idsFor = (r: Reminder) => [0, ...FOLLOW_UPS.HIGH].map((_, i) => `${r.id}:${i}`)
 
+async function cancel(ids: string[]): Promise<void> {
+  await Promise.all(ids.map((id) => Notifications.cancelScheduledNotificationAsync(id).catch(() => {})))
+}
+
 export async function cancelReminder(r: Reminder): Promise<void> {
-  const m = loadNotifee()
-  if (!m) return
-  const notifee = m.default
-  await Promise.all(idsFor(r).map((id) => notifee.cancelTriggerNotification(id)))
+  await cancel(idsFor(r))
+}
+
+/** Gatilho de um disparo: diário/semanal repete no mesmo horário; único dispara uma vez. */
+function triggerFor(r: Reminder, at: Date): Notifications.NotificationTriggerInput {
+  const base = Platform.OS === 'android' ? { channelId: CHANNEL_ID } : {}
+  if (r.frequency === 'DAILY') {
+    return { ...base, type: Notifications.SchedulableTriggerInputTypes.DAILY, hour: at.getHours(), minute: at.getMinutes() }
+  }
+  if (r.frequency === 'WEEKLY') {
+    // weekday: 1 = domingo ... 7 = sábado
+    return { ...base, type: Notifications.SchedulableTriggerInputTypes.WEEKLY, weekday: at.getDay() + 1, hour: at.getHours(), minute: at.getMinutes() }
+  }
+  return { ...base, type: Notifications.SchedulableTriggerInputTypes.DATE, date: at }
 }
 
 export async function scheduleReminder(r: Reminder): Promise<void> {
-  const { default: notifee, RepeatFrequency, TriggerType } = needNotifee()
   await cancelReminder(r)
   if (!r.enabled) return
 
   const first = nextFireTime(r.time, r.leadMinutes)
   const offsets = [0, ...FOLLOW_UPS[r.insistence]]
-  const repeat =
-    r.frequency === 'DAILY' ? RepeatFrequency.DAILY : r.frequency === 'WEEKLY' ? RepeatFrequency.WEEKLY : undefined
-
   await Promise.all(
-    offsets.map((min, i) => {
-      const trigger: TimestampTrigger = {
-        type: TriggerType.TIMESTAMP,
-        timestamp: first.getTime() + min * 60_000,
-        repeatFrequency: repeat,
-        alarmManager: { allowWhileIdle: true },
-      }
-      return notifee.createTriggerNotification(
-        {
-          id: `${r.id}:${i}`,
+    offsets.map((min, i) =>
+      Notifications.scheduleNotificationAsync({
+        identifier: `${r.id}:${i}`,
+        content: {
           title: r.title,
           body: r.leadMinutes > 0 ? `Começa em ${r.leadMinutes} min (${r.time}).` : `É agora (${r.time}).`,
           data: { kind: 'reminder', title: r.title, reminderId: r.id },
-          android: { channelId: CHANNEL_ID, pressAction: { id: 'default' } },
         },
-        trigger,
-      )
-    }),
+        trigger: triggerFor(r, new Date(first.getTime() + min * 60_000)),
+      }),
+    ),
   )
 }
 
@@ -106,17 +98,19 @@ export async function rescheduleAll(reminders: Reminder[]): Promise<void> {
 const SESSION_IDS = Array.from({ length: 12 }, (_, i) => `session:${i}`)
 
 async function fireAt(id: string, title: string, body: string, at: number, data: Record<string, string>) {
-  const { default: notifee, TriggerType } = needNotifee()
-  await notifee.createTriggerNotification(
-    { id, title, body, data, android: { channelId: CHANNEL_ID, pressAction: { id: 'default' } } },
-    { type: TriggerType.TIMESTAMP, timestamp: at, alarmManager: { allowWhileIdle: true } },
-  )
+  await Notifications.scheduleNotificationAsync({
+    identifier: id,
+    content: { title, body, data },
+    trigger: {
+      ...(Platform.OS === 'android' ? { channelId: CHANNEL_ID } : {}),
+      type: Notifications.SchedulableTriggerInputTypes.DATE,
+      date: new Date(at),
+    },
+  })
 }
 
 export async function cancelSessionAlerts(): Promise<void> {
-  const m = loadNotifee()
-  if (!m) return
-  await Promise.all(SESSION_IDS.map((id) => m.default.cancelTriggerNotification(id)))
+  await cancel(SESSION_IDS)
 }
 
 /** Aviso de fim da sessão e, se pedido, de beber água a cada 20 min. */
@@ -146,30 +140,32 @@ export interface NotificationTap {
   reminderId?: string
 }
 
-function toTap(n: { title?: string; data?: Record<string, unknown> } | undefined | null): NotificationTap | null {
-  const kind = n?.data?.kind
+function toTap(n: Notifications.Notification | null | undefined): NotificationTap | null {
+  const content = n?.request.content
+  const data = (content?.data ?? {}) as Record<string, unknown>
+  const kind = data.kind
   if (kind !== 'reminder' && kind !== 'session') return null
-  return { kind, title: String(n?.data?.title ?? n?.title ?? 'Lembrete'), reminderId: n?.data?.reminderId ? String(n.data.reminderId) : undefined }
+  return { kind, title: String(data.title ?? content?.title ?? 'Lembrete'), reminderId: data.reminderId ? String(data.reminderId) : undefined }
 }
 
 /** Toque na notificação com o app aberto. Devolve a função de cancelamento. */
 export function listenNotificationTaps(onTap: (t: NotificationTap) => void): () => void {
-  const m = loadNotifee()
-  if (!m) return () => {}
-  return m.default.onForegroundEvent(({ type, detail }) => {
-    if (type !== m.EventType.PRESS) return
-    const tap = toTap(detail.notification)
-    if (tap) onTap(tap)
-  })
+  try {
+    const sub = Notifications.addNotificationResponseReceivedListener((response) => {
+      const tap = toTap(response.notification)
+      if (tap) onTap(tap)
+    })
+    return () => sub.remove()
+  } catch {
+    return () => {}
+  }
 }
 
 /** Toque que abriu o app a partir do fechado. */
 export async function getInitialTap(): Promise<NotificationTap | null> {
-  const m = loadNotifee()
-  if (!m) return null
   try {
-    const initial = await m.default.getInitialNotification()
-    return toTap(initial?.notification)
+    const last = await Notifications.getLastNotificationResponseAsync()
+    return toTap(last?.notification)
   } catch {
     return null
   }

@@ -1,5 +1,5 @@
 /**
- * Tokens visuais do Atlas de Sinais, espelhando 1:1 o src/styles/tokens.css
+ * Tokens visuais do Kaluanã, espelhando 1:1 o src/styles/tokens.css
  * do kaluana-frontend-base (mesma paleta, mesma escala de espaçamento).
  */
 
