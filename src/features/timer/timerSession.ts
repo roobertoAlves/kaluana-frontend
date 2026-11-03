@@ -16,6 +16,8 @@ export interface TimerSession {
   steps: string[]
   water: boolean
   sound: TimerSound
+  /** Som silenciado nesta sessão (vale até ela acabar, em qualquer tela). */
+  muted: boolean
   startedAt: number
   status: TimerStatus
   endsAt: number | null
@@ -47,6 +49,7 @@ export function startTimer(id: string, o: StartOptions, now: number): TimerSessi
     steps: o.steps.map((s) => s.trim()).filter(Boolean).slice(0, 4),
     water: o.water,
     sound: o.sound ?? 'NONE',
+    muted: false,
     startedAt: now,
     status: 'RUNNING',
     endsAt: now + totalMs,
@@ -89,6 +92,14 @@ export function cancelTimer(s: TimerSession, now: number): TimerSession {
   if (s.status === 'DONE' || s.status === 'CANCELED') return s
   return { ...s, status: 'CANCELED', endsAt: null, remainingMs: null, finishedAt: now }
 }
+
+/** Liga ou silencia o som ambiente sem mexer no tempo. */
+export function setMuted(s: TimerSession, muted: boolean): TimerSession {
+  return s.muted === muted ? s : { ...s, muted }
+}
+
+/** O som deve tocar agora? Só com sessão rodando, som escolhido e não silenciado. */
+export const soundPlaying = (s: TimerSession | null) => !!s && s.status === 'RUNNING' && s.sound !== 'NONE' && !s.muted
 
 /** Fração concluída, de 0 a 1. */
 export function progress(s: TimerSession, now: number): number {

@@ -42,6 +42,7 @@ import { DayPlanScreen } from './src/screens/DayPlanScreen/DayPlanScreen'
 import { EditProfileScreen } from './src/screens/EditProfileScreen/EditProfileScreen'
 import { TimerPlanScreen } from './src/screens/TimerPlanScreen/TimerPlanScreen'
 import { TimerScreen } from './src/screens/TimerScreen/TimerScreen'
+import { TimerSoundScreen } from './src/screens/TimerSoundScreen/TimerSoundScreen'
 import { TimerDoneScreen } from './src/screens/TimerDoneScreen/TimerDoneScreen'
 import { ReminderAlertScreen } from './src/screens/ReminderAlertScreen/ReminderAlertScreen'
 import { TimerProvider } from './src/context/TimerContext'
@@ -132,6 +133,7 @@ export default function App() {
               <Stack.Screen name="DayPlan" component={DayPlanScreen} />
               <Stack.Screen name="EditProfile" component={EditProfileScreen} />
               <Stack.Screen name="TimerPlan" component={TimerPlanScreen} />
+              <Stack.Screen name="TimerSound" component={TimerSoundScreen} />
               <Stack.Screen name="Timer" component={TimerScreen} />
               <Stack.Screen name="TimerDone" component={TimerDoneScreen} />
               <Stack.Screen name="ReminderAlert" component={ReminderAlertScreen} />
