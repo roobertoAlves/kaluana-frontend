@@ -22,6 +22,7 @@ interface TaskRowProps {
   onAddStep: (text: string) => Promise<unknown>
   onRemoveStep: (stepId: string) => void
   onFocus: () => void
+  onEdit: () => void
   onDelete: () => void
   onSuggestSteps: () => Promise<string[] | null>
 }
@@ -48,12 +49,12 @@ export function TaskRow(props: TaskRowProps) {
   return (
     <FadeIn index={index} style={[styles.card, task.done && styles.cardDone]}>
       <View style={styles.row}>
-        <CheckBox checked={task.done} onToggle={props.onToggleDone} label={`Concluir ${task.title}`} />
+        <CheckBox checked={task.done} onToggle={props.onToggleDone} label={task.done ? `Reabrir ${task.title}` : `Concluir ${task.title}`} />
         <PressableScale
           onPress={props.onToggleExpand}
           accessibilityRole="button"
           accessibilityState={{ expanded }}
-          accessibilityHint="Mostra as microetapas"
+          accessibilityHint={expanded ? 'Fecha os detalhes' : 'Abre as microetapas e as ações'}
           containerStyle={styles.titleArea}
           style={styles.titleInner}
         >
@@ -62,6 +63,7 @@ export function TaskRow(props: TaskRowProps) {
             {taskMeta(task, today)}
             {task.steps.length > 0 ? ` · ${doneSteps}/${task.steps.length} etapas` : ''}
           </Text>
+          {!expanded && !task.done && <Text style={styles.open}>{task.steps.length === 0 ? 'Toque para dividir em microetapas' : 'Toque para ver as microetapas'}</Text>}
         </PressableScale>
       </View>
       {task.steps.length > 0 && !task.done && (
@@ -72,6 +74,8 @@ export function TaskRow(props: TaskRowProps) {
 
       {expanded && (
         <FadeIn style={styles.details}>
+          <Text style={styles.sectionLabel}>MICROETAPAS {task.steps.length > 0 ? `(${doneSteps}/${task.steps.length})` : ''}</Text>
+          {task.steps.length === 0 && <Text style={styles.meta}>Passos pequenos ajudam a começar. Ex.: “abrir o caderno”.</Text>}
           {task.steps.map((s) => (
             <View key={s.id} style={styles.stepRow}>
               <CheckBox checked={s.done} onToggle={() => props.onToggleStep(s.id)} label={s.text} size={22} />
@@ -132,7 +136,10 @@ export function TaskRow(props: TaskRowProps) {
                 <Text style={styles.focusText}>Focar nesta tarefa</Text>
               </PressableScale>
             )}
-            <SmallButton label="Apagar" danger onPress={props.onDelete} />
+            <View style={styles.secondaryActions}>
+              <SmallButton label="Editar" onPress={props.onEdit} />
+              <SmallButton label="Apagar" danger onPress={props.onDelete} />
+            </View>
           </View>
         </FadeIn>
       )}
@@ -159,7 +166,10 @@ const styles = StyleSheet.create({
   assistant: { marginTop: spacing[1], gap: spacing[2] },
   assistantLabel: { fontFamily: fonts.displayMedium, fontSize: 12, color: colors.textSecondary },
   suggestion: { flexDirection: 'row', alignItems: 'center', gap: spacing[2], minHeight: 44, paddingHorizontal: spacing[3], borderRadius: radius.md, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.sand },
-  actions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: spacing[2] },
+  actions: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: spacing[2], marginTop: spacing[2] },
+  secondaryActions: { flexDirection: 'row', gap: spacing[4] },
+  open: { fontFamily: fonts.bodyItalic, fontSize: 13, color: colors.textSecondary, marginTop: 2 },
+  sectionLabel: { fontFamily: fonts.displayMedium, fontSize: 11, letterSpacing: 1.2, color: colors.ink },
   focusButton: { flexDirection: 'row', alignItems: 'center', gap: spacing[2], minHeight: 48, paddingHorizontal: spacing[4], backgroundColor: colors.ink, borderRadius: radius.md },
   focusText: { fontFamily: fonts.bodyBold, fontSize: 15, color: colors.white },
 })

@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import type { Task } from '../../types/domain.ts'
-import { MAX_STEPS, focusSteps, sortForList, stepProgress, taskMeta, withDone, withStepAdded, withStepToggled } from './taskModel.ts'
+import { MAX_STEPS, focusSteps, sortForList, stepProgress, taskMeta, withDone, withStepAdded, withStepToggled, groupTasks, doneConfirmation } from './taskModel.ts'
 
 const base: Task = {
   id: 't1',
@@ -55,4 +55,16 @@ test('concluir registra a data e reabrir limpa', () => {
 
 test('descrição curta mostra atraso', () => {
   assert.equal(taskMeta({ ...base, dueDate: '2026-11-01' }, '2026-11-02'), '30 min · prioridade média · atrasada')
+})
+
+test('agrupa por situação e data', () => {
+  const mk = (id: string, dueDate: string | null, done = false) => ({ id, title: id, priority: 'MEDIUM' as const, estimatedMinutes: null, dueDate, done, completedAt: null, steps: [] })
+  const g = groupTasks([mk('a', '2026-11-01'), mk('b', '2026-11-02'), mk('c', '2026-11-05'), mk('d', null), mk('e', '2026-11-02', true)], '2026-11-02')
+  assert.deepEqual(g.map((x) => [x.key, x.tasks.map((t) => t.id)]), [['overdue', ['a']], ['today', ['b']], ['upcoming', ['c']], ['noDate', ['d']], ['done', ['e']]])
+})
+
+test('confirmação avisa microetapas abertas', () => {
+  const base = { id: 'x', title: 'x', priority: 'LOW' as const, estimatedMinutes: null, dueDate: null, done: false, completedAt: null }
+  assert.match(doneConfirmation({ ...base, steps: [{ id: '1', text: 'a', done: false }, { id: '2', text: 'b', done: true }] }), /falta 1 microetapa/)
+  assert.match(doneConfirmation({ ...base, steps: [] }), /sai da lista/)
 })
