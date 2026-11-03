@@ -26,6 +26,7 @@ import { SplashIFScreen } from './src/screens/SplashIFScreen/SplashIFScreen'
 import { SplashScreen } from './src/screens/SplashScreen/SplashScreen'
 import { ProfileSelectionScreen } from './src/screens/ProfileSelectionScreen/ProfileSelectionScreen'
 import { LoginScreen } from './src/screens/LoginScreen/LoginScreen'
+import { CheckEmailScreen } from './src/screens/CheckEmailScreen/CheckEmailScreen'
 import { PrimaryRegisterScreen } from './src/screens/PrimaryRegisterScreen/PrimaryRegisterScreen'
 import { ResponsibleRegisterScreen } from './src/screens/ResponsibleRegisterScreen/ResponsibleRegisterScreen'
 import { LoginSuccessScreen } from './src/screens/LoginSuccessScreen/LoginSuccessScreen'
@@ -123,6 +124,7 @@ export default function App() {
               <Stack.Screen name="Splash" component={SplashScreen} />
               <Stack.Screen name="ProfileSelection" component={ProfileSelectionScreen} />
               <Stack.Screen name="Login" component={LoginScreen} />
+              <Stack.Screen name="CheckEmail" component={CheckEmailScreen} />
               <Stack.Screen name="PrimaryRegister" component={PrimaryRegisterScreen} />
               <Stack.Screen name="ResponsibleRegister" component={ResponsibleRegisterScreen} />
               <Stack.Screen name="LoginSuccess" component={LoginSuccessScreen} />
