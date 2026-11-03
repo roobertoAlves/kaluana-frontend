@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Alert, Image, StyleSheet, Text, View } from 'react-native'
 import Svg, { Circle } from 'react-native-svg'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
@@ -7,7 +7,7 @@ import { Screen } from '../../components/ui/Screen'
 import { ArrowButton } from '../../components/ui/ArrowButton'
 import { SmallButton, formStyles } from '../../components/ui/forms'
 import { useTimer } from '../../context/TimerContext'
-import { useAmbientSound } from '../../hooks/useAmbientSound'
+import { soundInfo } from '../../features/timer/sounds'
 import { STEP_COLORS, currentStep, formatClock, progress, remainingMs } from '../../features/timer/timerSession'
 import { colors, fonts, radius, spacing } from '../../styles/tokens'
 
@@ -20,10 +20,8 @@ const C = 2 * Math.PI * R
 
 /** T2 · temporizador: anel de progresso com a raposa no centro. */
 export function TimerScreen({ navigation }: Props) {
-  const { session, now, pause, resume, plusMinute, cancel } = useTimer()
-  const [muted, setMuted] = useState(false)
-  // RF9: o som segue a sessão (toca rodando, para ao pausar ou encerrar).
-  useAmbientSound(session?.sound ?? 'NONE', session?.status === 'RUNNING' && !muted)
+  // RF9: o som é tocado pelo TimerProvider; aqui só se liga/silencia.
+  const { session, now, pause, resume, plusMinute, cancel, toggleMute } = useTimer()
 
   useEffect(() => {
     if (!session || session.status === 'CANCELED') navigation.replace('Home')
@@ -86,7 +84,10 @@ export function TimerScreen({ navigation }: Props) {
         <ArrowButton label="+1 min" variant="secondary" onPress={plusMinute} />
         <View style={{ alignItems: 'center' }}>
           {session.sound !== 'NONE' && (
-            <SmallButton label={muted ? 'Ligar o som ambiente' : 'Silenciar o som ambiente'} onPress={() => setMuted(!muted)} />
+            <SmallButton
+              label={session.muted ? `Ligar o som (${soundInfo(session.sound).label})` : `Silenciar o som (${soundInfo(session.sound).label})`}
+              onPress={toggleMute}
+            />
           )}
           <SmallButton label="Encerrar sessão" danger onPress={confirmCancel} />
         </View>

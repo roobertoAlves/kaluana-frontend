@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "Atlas de Sinais",
-    "slug": "atlas-sinais-mobile",
-    "scheme": "atlasdesinais",
+    "name": "Kaluanã",
+    "slug": "kaluana",
+    "scheme": "kaluana",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -28,7 +28,14 @@
       "expo-video",
       "expo-font",
       "expo-audio",
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-notifications",
+        {
+          "color": "#1F3556"
+        }
+      ],
+      "expo-dev-client"
     ]
   }
 }

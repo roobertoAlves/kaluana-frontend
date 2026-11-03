@@ -42,6 +42,7 @@ import { DayPlanScreen } from './src/screens/DayPlanScreen/DayPlanScreen'
 import { EditProfileScreen } from './src/screens/EditProfileScreen/EditProfileScreen'
 import { TimerPlanScreen } from './src/screens/TimerPlanScreen/TimerPlanScreen'
 import { TimerScreen } from './src/screens/TimerScreen/TimerScreen'
+import { TimerSoundScreen } from './src/screens/TimerSoundScreen/TimerSoundScreen'
 import { TimerDoneScreen } from './src/screens/TimerDoneScreen/TimerDoneScreen'
 import { ReminderAlertScreen } from './src/screens/ReminderAlertScreen/ReminderAlertScreen'
 import { TimerProvider } from './src/context/TimerContext'
@@ -60,6 +61,11 @@ function openFromTap(t: NotificationTap) {
   if (!navRef.isReady()) return
   if (t.kind === 'session') navRef.navigate('TimerDone')
   else navRef.navigate('ReminderAlert', { title: t.title, reminderId: t.reminderId })
+}
+
+/** Renovação da sessão falhou (ex.: 30 dias sem uso): volta para o login. */
+function goToLogin() {
+  if (navRef.isReady()) navRef.reset({ index: 0, routes: [{ name: 'Login' }] })
 }
 
 export default function App() {
@@ -99,7 +105,7 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }} onLayout={onLayoutRootView}>
       <SafeAreaProvider>
-        <AuthProvider>
+        <AuthProvider onExpired={goToLogin}>
           <TimerProvider>
           <NavigationContainer
             ref={navRef}
@@ -132,6 +138,7 @@ export default function App() {
               <Stack.Screen name="DayPlan" component={DayPlanScreen} />
               <Stack.Screen name="EditProfile" component={EditProfileScreen} />
               <Stack.Screen name="TimerPlan" component={TimerPlanScreen} />
+              <Stack.Screen name="TimerSound" component={TimerSoundScreen} />
               <Stack.Screen name="Timer" component={TimerScreen} />
               <Stack.Screen name="TimerDone" component={TimerDoneScreen} />
               <Stack.Screen name="ReminderAlert" component={ReminderAlertScreen} />

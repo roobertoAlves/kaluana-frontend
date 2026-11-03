@@ -1,3 +1,5 @@
+import type { LinkPermissions } from './domain'
+
 export type UserRole = 'PRIMARY' | 'RESPONSIBLE'
 
 export interface AuthenticatedUser {
@@ -15,10 +17,14 @@ export interface LinkedUser {
   name: string
   role: UserRole
   linkedAt: string
+  /** RF8: o que este vínculo autoriza (o principal edita; o responsável só vê). */
+  permissions?: LinkPermissions
 }
 
 export interface AuthResponse {
   accessToken: string
+  /** RNF4: troca o token de acesso vencido sem pedir login de novo. */
+  refreshToken?: string
   user: AuthenticatedUser
 }
 
