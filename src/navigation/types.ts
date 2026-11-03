@@ -1,3 +1,4 @@
+import type { StartOptions } from '../features/timer/timerSession'
 export type RootStackParamList = {
   SplashIF: undefined
   Splash: undefined
@@ -18,6 +19,7 @@ export type RootStackParamList = {
   Tasks: undefined
   DayPlan: undefined
   TimerPlan: { preset?: { task: string; minutes: number; steps?: string[]; taskId?: string } } | undefined
+  TimerSound: { plan: StartOptions }
   Timer: undefined
   TimerDone: undefined
   ReminderAlert: { title: string; reminderId?: string }

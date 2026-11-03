@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { MINUTE, addMinute, cancelTimer, currentStep, pauseTimer, progress, reevaluateTimer, remainingMs, resumeTimer, startTimer, formatClock } from './timerSession.ts'
+import { MINUTE, setMuted, soundPlaying, addMinute, cancelTimer, currentStep, pauseTimer, progress, reevaluateTimer, remainingMs, resumeTimer, startTimer, formatClock } from './timerSession.ts'
 
 const T0 = 5_000_000
 const mk = (steps: string[] = []) => startTimer('a', { task: 'Estudar', minutes: 25, steps, water: false }, T0)
@@ -58,4 +58,14 @@ test('sessão sem som e sem tarefa por padrão; guarda os escolhidos', () => {
   const withSound = startTimer('b', { task: 'Ler', minutes: 10, steps: [], water: false, sound: 'BROWN', taskId: 't1' }, T0)
   assert.equal(withSound.sound, 'BROWN')
   assert.equal(withSound.taskId, 't1')
+})
+
+test('silenciar vale para a sessão inteira e não mexe no tempo', () => {
+  const s = startTimer('a', { task: 'Ler', minutes: 25, steps: [], water: false, sound: 'BROWN' }, T0)
+  assert.equal(soundPlaying(s), true)
+  const m = setMuted(s, true)
+  assert.equal(soundPlaying(m), false)
+  assert.equal(remainingMs(m, T0 + MINUTE), remainingMs(s, T0 + MINUTE))
+  assert.equal(soundPlaying(pauseTimer(setMuted(m, false), T0)), false, 'pausada não toca')
+  assert.equal(soundPlaying(null), false)
 })
