@@ -32,7 +32,11 @@ O `npm ci` instala exatamente as versões do `package-lock.json`. Use
 ## 3. Endereço da API
 
 O aplicativo lê o endereço da API da variável `EXPO_PUBLIC_API_BASE_URL`,
-no arquivo `.env` (modelo em `.env.example`):
+no arquivo `.env`. Crie o seu a partir do modelo e ajuste o endereço:
+
+```bash
+cp .env.example .env
+```
 
 ```env
 EXPO_PUBLIC_API_BASE_URL=http://192.168.0.10:8080
