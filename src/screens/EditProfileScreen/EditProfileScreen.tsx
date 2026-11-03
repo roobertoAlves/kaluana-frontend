@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import type { RootStackParamList } from '../../navigation/types'
@@ -22,13 +22,16 @@ export function EditProfileScreen({ navigation }: Props) {
   const [nickname, setNickname] = useState('')
   const [color, setColor] = useState<string>(AVATAR_COLORS[0])
 
-  useEffect(() => {
-    if (!loaded) return
+  const [synced, setSynced] = useState(false)
+
+  // Preenche o formulário uma vez, quando o perfil salvo termina de carregar
+  // (ajuste durante a renderização, sem efeito).
+  if (loaded && !synced) {
+    setSynced(true)
     setName(profile.displayName || user?.name || '')
     setNickname(profile.nickname)
     setColor(profile.avatarColor)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loaded])
+  }
 
   async function save() {
     const displayName = name.trim() || user?.name || ''

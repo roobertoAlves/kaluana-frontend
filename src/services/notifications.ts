@@ -1,6 +1,7 @@
 import { Platform } from 'react-native'
 import * as Notifications from 'expo-notifications'
 import { AndroidImportance } from 'expo-notifications'
+import { nextFireTime } from '../features/reminders/reminderModel'
 import type { Reminder, ReminderInsistence } from '../types/domain'
 
 /**
@@ -39,15 +40,8 @@ export async function ensureNotificationSetup(): Promise<boolean> {
   }
 }
 
-/** Próximo horário em que `time` ("HH:MM") ocorre, menos a antecedência. */
-export function nextFireTime(time: string, leadMinutes: number, now: Date = new Date()): Date {
-  const [h, m] = time.split(':').map(Number)
-  const target = new Date(now)
-  target.setHours(h, m, 0, 0)
-  let fire = new Date(target.getTime() - leadMinutes * 60_000)
-  while (fire.getTime() <= now.getTime()) fire = new Date(fire.getTime() + 24 * 60 * 60_000)
-  return fire
-}
+// A regra do próximo disparo fica no modelo (testável); reexportada para a Home.
+export { nextFireTime }
 
 const idsFor = (r: Reminder) => [0, ...FOLLOW_UPS.HIGH].map((_, i) => `${r.id}:${i}`)
 
