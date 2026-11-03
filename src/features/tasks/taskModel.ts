@@ -63,3 +63,33 @@ export function taskMeta(task: Task, today: string): string {
   }
   return parts.join(' · ')
 }
+
+export type TaskGroupKey = 'overdue' | 'today' | 'upcoming' | 'noDate' | 'done'
+
+export const GROUP_TITLE: Record<TaskGroupKey, string> = {
+  overdue: 'ATRASADAS',
+  today: 'HOJE',
+  upcoming: 'PRÓXIMAS',
+  noDate: 'SEM DATA',
+  done: 'CONCLUÍDAS',
+}
+
+/** Agrupa para a lista: atrasadas, hoje, próximas, sem data e concluídas (nessa ordem). */
+export function groupTasks(tasks: Task[], today: string): { key: TaskGroupKey; tasks: Task[] }[] {
+  const keyOf = (t: Task): TaskGroupKey => {
+    if (t.done) return 'done'
+    if (!t.dueDate) return 'noDate'
+    if (t.dueDate < today) return 'overdue'
+    return t.dueDate === today ? 'today' : 'upcoming'
+  }
+  const order: TaskGroupKey[] = ['overdue', 'today', 'upcoming', 'noDate', 'done']
+  const sorted = sortForList(tasks)
+  return order.map((key) => ({ key, tasks: sorted.filter((t) => keyOf(t) === key) })).filter((g) => g.tasks.length > 0)
+}
+
+/** Texto da confirmação ao concluir: avisa quando ainda há microetapas abertas. */
+export function doneConfirmation(task: Task): string {
+  const open = task.steps.filter((s) => !s.done).length
+  if (open === 0) return 'Ela sai da lista de pendentes. Dá para desfazer em "Concluídas".'
+  return `Ainda ${open === 1 ? 'falta 1 microetapa' : `faltam ${open} microetapas`}. Concluir mesmo assim?`
+}
