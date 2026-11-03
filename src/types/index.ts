@@ -9,6 +9,8 @@ export interface AuthenticatedUser {
   role: UserRole
   nickname?: string | null
   avatarColor?: string | null
+  /** Conta nova só entra depois de clicar no link enviado por e-mail. */
+  emailVerified?: boolean
 }
 
 /** A outra ponta de um emparelhamento (GET /api/pairing/links). */
@@ -27,6 +29,15 @@ export interface AuthResponse {
   refreshToken?: string
   user: AuthenticatedUser
 }
+
+/** Cadastro com confirmação de e-mail: a conta existe, mas ainda sem sessão. */
+export interface PendingConfirmation {
+  user: AuthenticatedUser
+}
+
+export type RegisterResponse = AuthResponse | PendingConfirmation
+
+export const isPendingConfirmation = (r: RegisterResponse): r is PendingConfirmation => !('accessToken' in r) || !r.accessToken
 
 export interface LoginPayload {
   email: string

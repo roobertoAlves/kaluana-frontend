@@ -7,6 +7,7 @@ export type RootStackParamList = {
   Splash: undefined
   ProfileSelection: undefined
   Login: undefined
+  CheckEmail: { email: string }
   PrimaryRegister: undefined
   ResponsibleRegister: undefined
   LoginSuccess: undefined
