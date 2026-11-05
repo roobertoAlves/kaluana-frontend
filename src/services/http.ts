@@ -1,11 +1,6 @@
+import { create, isAxiosError } from 'axios'
+import type { AxiosError, InternalAxiosRequestConfig } from 'axios'
 import { getApiBaseUrl } from './runtimeConfig'
-
-/**
- * Cliente HTTP único do app: monta a URL, envia o token, traduz erros da API
- * (formato ApiError do back-end: { status, message, fieldErrors }) e trata
- * 204 sem corpo. Os módulos de cada feature (eventsApi, remindersApi...) só
- * descrevem rota e formato; nenhum chama fetch direto.
- */
 
 export class ApiError extends Error {
   status: number
@@ -23,15 +18,14 @@ interface RequestOptions {
   method?: HttpMethod
   body?: unknown
   token?: string | null
-  /** Padrão: com token, um 401 tenta renovar a sessão e repete o pedido uma vez. */
   retryOn401?: boolean
 }
 
-/**
- * RNF4: quem sabe renovar a sessão é o AuthProvider (guarda o token de
- * renovação). Ele se registra aqui; devolve o token de acesso novo, ou null
- * quando não deu para renovar (aí a pessoa precisa entrar de novo).
- */
+interface RetryConfig extends InternalAxiosRequestConfig {
+  retryOn401?: boolean
+  retried?: boolean
+}
+
 type SessionRefresher = () => Promise<string | null>
 let sessionRefresher: SessionRefresher | null = null
 
@@ -49,50 +43,61 @@ const FALLBACK_MESSAGES: Record<number, string> = {
   429: 'Muitas tentativas seguidas. Aguarde um pouco antes de tentar de novo.',
 }
 
-export async function apiRequest<TResponse>(path: string, options: RequestOptions = {}): Promise<TResponse> {
-  const { token, retryOn401 = true } = options
+export const api = create({ timeout: 15000 })
+
+api.interceptors.request.use((config) => {
+  config.baseURL = getApiBaseUrl()
+  return config
+})
+
+api.interceptors.response.use(undefined, async (error: AxiosError) => {
+  const config = error.config as RetryConfig | undefined
+  const hadToken = !!config?.headers?.Authorization
+  if (error.response?.status !== 401 || !config || !hadToken || config.retryOn401 === false || config.retried || !sessionRefresher) {
+    throw error
+  }
+  const fresh = await sessionRefresher()
+  if (!fresh) throw error
+  config.retried = true
+  config.headers.Authorization = `Bearer ${fresh}`
+  return api.request(config)
+})
+
+export async function apiRequest<TResponse>(path: string, { method = 'GET', body, token, retryOn401 = true }: RequestOptions = {}): Promise<TResponse> {
   try {
-    return await send<TResponse>(path, options)
+    const response = await api.request<TResponse>({
+      url: path,
+      method,
+      data: body,
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      retryOn401,
+    } as RetryConfig)
+    return (response.status === 204 ? undefined : response.data) as TResponse
   } catch (e) {
-    if (!(e instanceof ApiError) || e.status !== 401 || !token || !retryOn401 || !sessionRefresher) throw e
-    const fresh = await sessionRefresher()
-    if (!fresh) throw e
-    return send<TResponse>(path, { ...options, token: fresh })
+    throw toApiError(e)
   }
 }
 
-async function send<TResponse>(path: string, { method = 'GET', body, token }: RequestOptions): Promise<TResponse> {
-  const headers: Record<string, string> = {}
-  if (body !== undefined) headers['Content-Type'] = 'application/json'
-  if (token) headers.Authorization = `Bearer ${token}`
-
-  let response: Response
+export async function checkApi(baseUrl: string): Promise<boolean> {
   try {
-    response = await fetch(`${getApiBaseUrl()}${path}`, {
-      method,
-      headers,
-      body: body === undefined ? undefined : JSON.stringify(body),
-    })
+    const response = await api.get<{ status?: string }>(`${baseUrl}/actuator/health`, { timeout: 5000 })
+    return response.data?.status === 'UP'
   } catch {
-    throw new ApiError(
-      `Erro de conexão com ${getApiBaseUrl()}. Verifique se o backend está no ar e tente novamente.`,
+    return false
+  }
+}
+
+function toApiError(e: unknown): ApiError {
+  if (e instanceof ApiError) return e
+  if (!isAxiosError(e) || !e.response) {
+    return new ApiError(
+      `Não foi possível conectar à API em ${getApiBaseUrl()}. Confira se ela está no ar e se o celular está na mesma rede do computador.`,
       0,
     )
   }
-
-  if (!response.ok) {
-    let message = FALLBACK_MESSAGES[response.status] ?? 'Não foi possível concluir a operação.'
-    try {
-      const data = (await response.json()) as { message?: string }
-      if (data?.message) message = data.message
-    } catch {
-      // corpo vazio ou não-JSON: mantém a mensagem padrão acima
-    }
-    throw new ApiError(message, response.status)
-  }
-
-  if (response.status === 204) return undefined as TResponse
-  return (await response.json()) as TResponse
+  const data = e.response.data as { message?: string } | undefined
+  const message = data?.message || FALLBACK_MESSAGES[e.response.status] || 'Não foi possível concluir a operação.'
+  return new ApiError(message, e.response.status)
 }
 
 export function errorMessage(e: unknown, fallback = 'Não foi possível concluir a operação.'): string {
