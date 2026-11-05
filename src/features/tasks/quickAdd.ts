@@ -1,18 +1,13 @@
 import type { TaskPriority } from '../../types/domain.ts'
 import { MAX_STEPS } from './taskModel.ts'
 
-/**
- * RF15 / RNF1: cria uma tarefa a partir de uma frase ("estudar cálculo amanhã
- * 30min !alta; ler resumo; fazer exercícios"). Regras fixas e testadas, no
- * aparelho, porque "amanhã" depende do fuso e do dia de quem digita. Cada
- * trecho reconhecido sai do título e pode ser desfeito (ignore).
- */
+
 
 export type QuickKind = 'date' | 'minutes' | 'priority' | 'steps'
 
 export interface QuickToken {
   kind: QuickKind
-  /** Como aparece no chip ("amanhã · 03/11", "30 min"...). */
+  
   label: string
 }
 
@@ -51,13 +46,13 @@ const short = (d: Date) => `${pad(d.getDate())}/${pad(d.getMonth() + 1)}`
 const addDays = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n)
 const strip = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 
-// Um trecho só conta como palavra inteira: começo/espaço antes e fim/espaço/pontuação depois.
+
 const word = (body: string) => new RegExp(`(^|\\s)(${body})(?=$|[\\s,.!?])`, 'iu')
 
 interface Rule {
   kind: Exclude<QuickKind, 'steps'>
   pattern: RegExp
-  /** Devolve o valor e o rótulo, ou null se o trecho não vale (ex.: data inexistente). */
+  
   read: (m: RegExpMatchArray, today: Date) => { value: string | number; label: string } | null
 }
 
@@ -81,7 +76,7 @@ const RULES: Rule[] = [
     read: (m, t) => {
       const found = WEEKDAYS.find(([re]) => re.test(m[2]))
       if (!found) return null
-      // Sempre a próxima ocorrência, nunca o próprio dia.
+
       const ahead = ((found[1] - t.getDay() + 7) % 7) || 7
       const d = addDays(t, ahead)
       return { value: key(d), label: `${found[2]} · ${short(d)}` }
@@ -106,7 +101,7 @@ const RULES: Rule[] = [
     read: (m, t) => {
       const day = Number(m[3])
       if (day < 1 || day > 31) return null
-      // Próxima ocorrência do dia do mês (hoje conta); pula meses que não têm esse dia.
+
       for (let i = 0; i < 13; i++) {
         const d = new Date(t.getFullYear(), t.getMonth() + i, day)
         if (d.getDate() === day && key(d) >= key(t)) return { value: key(d), label: `dia ${day} · ${short(d)}` }
@@ -160,7 +155,7 @@ export function parseQuickTask(input: string, today: Date = new Date(), ignore: 
     if (rule.kind === 'date') result.dueDate = String(read.value)
     if (rule.kind === 'minutes') result.estimatedMinutes = Number(read.value)
     if (rule.kind === 'priority') result.priority = read.value as TaskPriority
-    // Tira o trecho (sem o espaço que o antecede) do título.
+
     const start = m.index + m[1].length
     rest = `${rest.slice(0, start)} ${rest.slice(start + m[2].length)}`
   }
@@ -168,7 +163,7 @@ export function parseQuickTask(input: string, today: Date = new Date(), ignore: 
 
   const title = rest.replace(/\s+/g, ' ').replace(/^[\s,.;-]+|[\s,;-]+$/g, '').trim()
   if (!title) {
-    // Nada sobrou para o título: a frase inteira vira o título, sem interpretação.
+
     const whole = input.replace(/\s+/g, ' ').trim().slice(0, MAX_TEXT)
     return { title: whole, dueDate: null, estimatedMinutes: null, priority: null, steps: [], tokens: [] }
   }

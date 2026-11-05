@@ -5,7 +5,6 @@ import type { AssistantStatus } from '../services/assistantApi'
 
 const OFF: AssistantStatus = { enabled: false, model: null }
 
-/** RF11: o assistente só aparece com conta e quando o servidor o deixa ligado. */
 export function useAssistantStatus(): AssistantStatus {
   const { accessToken } = useAuth()
   const [status, setStatus] = useState<AssistantStatus>(OFF)

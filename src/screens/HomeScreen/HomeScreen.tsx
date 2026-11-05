@@ -33,7 +33,7 @@ const SHORTCUTS: Shortcut[] = [
   { label: 'Sons', icon: 'sound', go: (n) => n.navigate('Sounds') },
   { label: 'Lembretes', icon: 'bell', go: (n) => n.navigate('Reminders') },
   { label: 'Eventos', icon: 'note', go: (n) => n.navigate('EventLog') },
-  { label: 'Local', icon: 'pin' }, // "em breve": definição pendente (TCC exclui geolocalização em tempo real)
+  { label: 'Local', icon: 'pin' },
 ]
 
 const SCENARIOS: { label: string; hint: string; go: (n: Props['navigation']) => void }[] = [
@@ -85,14 +85,12 @@ export function HomeScreen({ navigation }: Props) {
               <Text style={styles.muted}>
                 Sua conta está vinculada como responsável. Você verá aqui apenas o que o usuário principal autorizar.
               </Text>
-              {/* Relatório (e PDF) com o que foi liberado para esta conta. */}
               <View style={{ marginTop: spacing[5] }}>
                 <ArrowButton label="Ver relatório" onPress={() => navigation.navigate('Report')} />
               </View>
             </>
           ) : (
             <>
-              {/* H1 · cartão de lembrete */}
               <Pressable
                 onPress={() => navigation.navigate('Reminders')}
                 accessibilityRole="button"
@@ -109,7 +107,6 @@ export function HomeScreen({ navigation }: Props) {
                 <Icon name="chevron" size={20} color={colors.sand} />
               </Pressable>
 
-              {/* H2 · mini-player da sessão ativa */}
               {activeSession && (
                 <Pressable
                   onPress={() => navigation.navigate(activeSession.status === 'DONE' ? 'TimerDone' : 'Timer')}
@@ -128,7 +125,6 @@ export function HomeScreen({ navigation }: Props) {
                 </Pressable>
               )}
 
-              {/* RF17 · encerrar o dia (a partir das 18h, uma vez por dia) */}
               {offerReview && (
                 <Pressable onPress={() => navigation.navigate('DayReview')} accessibilityRole="button" style={[styles.card, styles.review]}>
                   <View style={{ flex: 1 }}>
@@ -140,7 +136,6 @@ export function HomeScreen({ navigation }: Props) {
                 </Pressable>
               )}
 
-              {/* Carrossel de atalhos */}
               <ScrollView bounces={false} overScrollMode="never" horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carousel}>
                 {SHORTCUTS.map((s) => {
                   const soon = !s.go
@@ -164,7 +159,6 @@ export function HomeScreen({ navigation }: Props) {
                 })}
               </ScrollView>
 
-              {/* Cenários rápidos */}
               <Text style={styles.section}>CENÁRIOS RÁPIDOS</Text>
               <View style={styles.grid}>
                 {SCENARIOS.map((s) => (
@@ -181,7 +175,6 @@ export function HomeScreen({ navigation }: Props) {
                 ))}
               </View>
 
-              {/* Resumo do check-in de hoje */}
               <Text style={styles.section}>CHECK-IN DE HOJE</Text>
               <Pressable onPress={() => navigation.navigate('CheckIn')} accessibilityRole="button" style={[styles.card, styles.row]}>
                 <View style={{ flex: 1 }}>

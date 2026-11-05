@@ -11,22 +11,16 @@ interface Props {
   value: number
   onChange: (v: number) => void
   format?: (v: number) => string
-  /** Lido pelo leitor de tela (ex.: "Horas"). */
   label: string
   width?: number
 }
 
-/**
- * Roda de rolagem, como o relógio do celular: o item do meio é o escolhido.
- * Para leitor de tela é um controle "ajustável" (deslizar para cima/baixo).
- */
 export function Wheel({ values, value, onChange, format = (v) => String(v).padStart(2, '0'), label, width = 88 }: Props) {
   const ref = useRef<ScrollViewInstance>(null)
   const index = Math.max(0, values.indexOf(value))
 
   useEffect(() => {
     ref.current?.scrollTo({ y: index * ITEM_HEIGHT, animated: false })
-    // Só na abertura: depois, quem move a roda é o usuário.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -60,7 +54,6 @@ export function Wheel({ values, value, onChange, format = (v) => String(v).padSt
         decelerationRate="fast"
         onMomentumScrollEnd={settle}
         onScrollEndDrag={(e) => {
-          // Web e arrastos curtos não geram "momentum": decide ao soltar.
           if (!e.nativeEvent.velocity?.y) settle(e)
         }}
         contentContainerStyle={{ paddingVertical: ITEM_HEIGHT * Math.floor(VISIBLE / 2) }}

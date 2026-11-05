@@ -23,14 +23,6 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Report'>
 
 const PERIODS = [{ value: 7, label: '7 dias' }, { value: 30, label: '30 dias' }, { value: 90, label: '90 dias' }]
 
-/**
- * RF7: relatório informativo.
- * - Conta principal: "Para mim" traz tudo; escolhendo uma pessoa conectada,
- *   mostra a prévia exata do que ela vê (autorização por pessoa, RF8).
- * - Responsável/profissional: relatório de quem está emparelhado, já filtrado
- *   no servidor (RNF3), com exportação em PDF.
- * - Sem login: montado só com os registros deste aparelho.
- */
 export function ReportScreen({ navigation }: Props) {
   const { user } = useAuth()
   return user?.role === 'RESPONSIBLE' ? <LinkedReport onBack={() => navigation.goBack()} /> : <OwnReport onBack={() => navigation.goBack()} />

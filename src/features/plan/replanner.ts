@@ -1,32 +1,19 @@
 import type { DayPlan, DayPlanBlock, PlanChange, Task } from '../../types/domain.ts'
 import { layout, order, plannable, toMinutes } from './dayPlanner.ts'
 
-/**
- * RF14 / RNF1: mesmas regras do DayReplanner do back-end (Apêndice "Modelo
- * Comportamental"). O aparelho decide QUANDO replanejar (só ele sabe a hora
- * local); com conta, quem replaneja é a API. Sem conta ou sem rede, roda aqui.
- */
-
 const pad = (n: number) => String(n).padStart(2, '0')
 const toHHMM = (m: number) => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`
 
-/** Hora local "HH:MM". */
 export function clock(now: Date = new Date()): string {
   return `${pad(now.getHours())}:${pad(now.getMinutes())}`
 }
 
-/** Próximo horário múltiplo de 5 minutos ("09:07" → "09:10"), no máximo 23:55. */
 export function slotAfter(hhmm: string): string {
   return toHHMM(Math.min(Math.ceil(toMinutes(hhmm) / 5) * 5, 23 * 60 + 55))
 }
 
 const isTask = (b: DayPlanBlock): b is DayPlanBlock & { taskId: string } => b.kind === 'TASK' && b.taskId !== null
 
-/**
- * O plano deixou de corresponder ao dia? Um bloco terminou e a tarefa segue
- * pendente; a tarefa de um bloco em andamento ou futuro saiu (concluída ou
- * apagada); ou há tarefa pendente para o dia que não está em lugar nenhum.
- */
 export function needsReplan(plan: DayPlan, tasks: Task[], now: string): boolean {
   const pending = new Set(plannable(tasks, plan.date).map((t) => t.id))
   const known = new Set([...plan.blocks.filter(isTask).map((b) => b.taskId), ...plan.unscheduled.map((u) => u.taskId)])
@@ -37,7 +24,6 @@ export function needsReplan(plan: DayPlan, tasks: Task[], now: string): boolean 
   return slipped || freed || fresh
 }
 
-/** Reorganiza o plano a partir de {@code now}, mantendo a ordem aceita e o bloco em andamento. */
 export function replanLocally(previous: DayPlan, tasks: Task[], energy: number | null, now: string): DayPlan {
   const pending = order(plannable(tasks, previous.date), previous.date, energy)
   const byId = new Map(pending.map((t) => [t.id, t]))
@@ -54,7 +40,6 @@ export function replanLocally(previous: DayPlan, tasks: Task[], energy: number |
       kept.push(task)
     }
   }
-  // `pending` já está na ordem das regras: o resto entra nessa ordem.
   const ordered = [...kept, ...pending.filter((t) => !placed.has(t.id))]
 
   const start = current ? current.end : slotAfter(now)
@@ -74,7 +59,6 @@ function changesBetween(before: DayPlanBlock[], after: DayPlanBlock[], pending: 
     const task = pending.get(b.taskId)
     const to = newStart.get(b.taskId)
     if (!task) {
-      // Bloco que já passou e foi feito não é novidade.
       if (b.end > now) changes.push({ taskId: b.taskId, title: b.title, kind: done.has(b.taskId) ? 'DONE' : 'REMOVED', from: b.start, to: null })
     } else if (!to) {
       changes.push({ taskId: b.taskId, title: task.title, kind: 'DROPPED', from: b.start, to: null })
@@ -88,7 +72,6 @@ function changesBetween(before: DayPlanBlock[], after: DayPlanBlock[], pending: 
   return changes
 }
 
-/** Frase curta para o aviso de replanejamento (RNF5: linguagem direta). */
 export function describeChange(c: PlanChange): string {
   switch (c.kind) {
     case 'MOVED':

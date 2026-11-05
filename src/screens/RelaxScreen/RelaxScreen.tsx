@@ -14,7 +14,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Relax'>
 
 const SIZE = 240
 
-/** RF16 · Relaxar: respiração guiada com uma paisagem sonora por alguns minutos. */
+
 export function RelaxScreen({ navigation, route }: Props) {
   const { sound, minutes } = route.params
   const session = useAmbientSession('RELAX', sound, minutes)
@@ -25,7 +25,7 @@ export function RelaxScreen({ navigation, route }: Props) {
   const [scale] = useState(() => new Animated.Value(0.7))
   useEffect(() => {
     if (reduced || !playing) return undefined
-    // O círculo cresce ao inspirar e diminui ao soltar o ar, no mesmo ritmo do texto.
+
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(scale, { toValue: 1, duration: INHALE_MS, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),

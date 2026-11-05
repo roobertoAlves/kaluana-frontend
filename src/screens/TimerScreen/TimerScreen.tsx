@@ -18,9 +18,7 @@ const STROKE = 16
 const R = (SIZE - STROKE) / 2
 const C = 2 * Math.PI * R
 
-/** T2 · temporizador: anel de progresso com a raposa no centro. */
 export function TimerScreen({ navigation }: Props) {
-  // RF9: o som é tocado pelo TimerProvider; aqui só se liga/silencia.
   const { session, now, pause, resume, plusMinute, cancel, toggleMute } = useTimer()
 
   useEffect(() => {

@@ -4,7 +4,6 @@ import type { DayPlan, Task } from '../../types/domain.ts'
 import { planLocally } from './dayPlanner.ts'
 import { describeChange, needsReplan, replanLocally, slotAfter } from './replanner.ts'
 
-// Mesmos casos do DayReplannerTest do back-end: as duas versões precisam concordar.
 const DAY = '2026-11-02'
 const task = (title: string, minutes = 30, done = false): Task => ({
   id: title,
@@ -17,7 +16,6 @@ const task = (title: string, minutes = 30, done = false): Task => ({
   steps: [],
 })
 
-// Plano aceito às 09:00: A 09:00–09:30, pausa, B 09:35–10:05, pausa, C 10:10–10:40.
 const accepted: DayPlan = planLocally([task('A'), task('B'), task('C')], DAY, null, '09:00', '12:00')
 const titles = (p: DayPlan) => p.blocks.filter((b) => b.kind === 'TASK').map((b) => b.title)
 const summary = (p: DayPlan) => p.changes.map((c) => [c.title, c.kind, c.from, c.to])

@@ -2,7 +2,6 @@ import type { TrustedContact } from '../types/domain'
 import type { CollectionSource } from '../hooks/useCollection'
 import { apiRequest } from './http'
 
-/** RF4 · /api/contacts. */
 const toBody = (c: TrustedContact) => ({ name: c.name, method: c.method, value: c.value })
 
 export const contactsSource: CollectionSource<TrustedContact> = {

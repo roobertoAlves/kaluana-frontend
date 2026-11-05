@@ -12,10 +12,7 @@ import { colors, fonts, radius, spacing } from '../../styles/tokens'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CheckEmail'>
 
-/**
- * Depois do cadastro (ou de um login com a conta ainda não confirmada):
- * avisa para abrir o e-mail e clicar no link. Dá para pedir outro link.
- */
+
 export function CheckEmailScreen({ navigation, route }: Props) {
   const { email } = route.params
   const [status, setStatus] = useState<string | null>(null)

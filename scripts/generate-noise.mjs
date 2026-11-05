@@ -1,16 +1,13 @@
-// Gera os sons do app (RF9 e RF16) em assets/sounds/*.wav: ruídos e paisagens.
-// Ruídos branco, rosa e marrom, 12 s em loop sem emenda audível.
-// Uso: node scripts/generate-noise.mjs   (determinístico: mesma semente, mesmos arquivos)
+import { Buffer } from 'node:buffer'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const RATE = 22050
 const SECONDS = 12
-const FADE = Math.round(RATE * 0.5) // 0,5 s de cruzamento entre fim e começo
+const FADE = Math.round(RATE * 0.5)
 const OUT = join(dirname(fileURLToPath(import.meta.url)), '..', 'assets', 'sounds')
 
-// Gerador pseudoaleatório com semente (mulberry32), para builds reprodutíveis.
 function random(seed) {
   return () => {
     seed |= 0
@@ -25,7 +22,6 @@ function white(n, rnd) {
   return Float64Array.from({ length: n }, () => rnd() * 2 - 1)
 }
 
-// Filtro de Paul Kellet: aproxima -3 dB por oitava.
 function pink(n, rnd) {
   const out = new Float64Array(n)
   let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0
@@ -43,7 +39,6 @@ function pink(n, rnd) {
   return out
 }
 
-// Passeio aleatório com fuga: -6 dB por oitava, som grave e "abafado".
 function brown(n, rnd) {
   const out = new Float64Array(n)
   let last = 0
@@ -54,7 +49,6 @@ function brown(n, rnd) {
   return out
 }
 
-/** Gera FADE amostras a mais e cruza o excesso com o começo: o loop não estala. */
 function seamless(signal) {
   const n = signal.length - FADE
   const out = signal.slice(0, n)
@@ -77,9 +71,9 @@ function wav(samples) {
   header.write('RIFF', 0)
   header.writeUInt32LE(36 + data.length, 4)
   header.write('WAVEfmt ', 8)
-  header.writeUInt32LE(16, 16) // tamanho do bloco fmt
-  header.writeUInt16LE(1, 20) // PCM
-  header.writeUInt16LE(1, 22) // mono
+  header.writeUInt32LE(16, 16)
+  header.writeUInt16LE(1, 20)
+  header.writeUInt16LE(1, 22)
   header.writeUInt32LE(RATE, 24)
   header.writeUInt32LE(RATE * 2, 28)
   header.writeUInt16LE(2, 32)

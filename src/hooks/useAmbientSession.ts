@@ -5,11 +5,7 @@ import type { AmbientMode, Soundscape } from '../features/sounds/soundscape'
 
 const TICK_MS = 1000
 
-/**
- * RF16: relógio de uma sessão de Relaxar ou Dormir. O fim é um horário
- * absoluto (como no foco), então o tempo continua certo mesmo se a tela travar
- * por um instante. Ao terminar (ou ao sair da tela), registra a sessão uma vez.
- */
+
 export function useAmbientSession(mode: AmbientMode, sound: Soundscape, minutes: number) {
   const { accessToken } = useAuth()
   const totalMs = minutes * 60_000
@@ -40,7 +36,7 @@ export function useAmbientSession(mode: AmbientMode, sound: Soundscape, minutes:
     return () => clearInterval(timer)
   }, [finished, startedAt, totalMs, finish])
 
-  // Saiu da tela antes do fim: conta como encerrada antes.
+
   const latestFinish = useRef(finish)
   useEffect(() => {
     latestFinish.current = finish

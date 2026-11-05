@@ -10,11 +10,6 @@ import type {
 } from '../types'
 import { apiRequest } from './http'
 
-/**
- * Rotas de autenticação e emparelhamento. O fetch, os headers e a tradução
- * de erros ficam em http.ts, compartilhado com os módulos de cada feature.
- */
-
 export { ApiError } from './http'
 
 function login(payload: LoginPayload) {
@@ -41,7 +36,7 @@ function logout(refreshToken: string) {
   return apiRequest<void>('/api/auth/logout', { method: 'POST', body: { refreshToken }, retryOn401: false })
 }
 
-/** Novo link de confirmação. A API responde 202 sempre (não diz se o e-mail existe). */
+
 function resendConfirmation(email: string) {
   return apiRequest<void>('/api/auth/resend-confirmation', { method: 'POST', body: { email } })
 }

@@ -34,7 +34,6 @@ function urlFor(c: TrustedContact): string {
   }
 }
 
-/** RF4: contatos de confiança com a forma de contato preferida. */
 export function ContactsScreen({ navigation }: Props) {
   const { items, add, remove, error: apiError } = useCollection<TrustedContact>(contactsSource)
   const [adding, setAdding] = useState(false)

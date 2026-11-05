@@ -22,7 +22,7 @@ import { colors, fonts, radius, spacing } from '../../styles/tokens'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'DayReview'>
 
-/** RF17 (Sunsama): encerrar o dia. O que ficou não some: a pessoa escolhe para onde vai. */
+
 export function DayReviewScreen({ navigation }: Props) {
   const { accessToken } = useAuth()
   const tasks = useTasks()
@@ -38,7 +38,7 @@ export function DayReviewScreen({ navigation }: Props) {
   const completed = completedOn(tasks.items, today)
 
   function choose(task: Task, action: ReviewAction) {
-    // Tocar de novo na mesma opção desfaz a escolha.
+
     const next = { ...choices }
     if (next[task.id] === action) delete next[task.id]
     else next[task.id] = action

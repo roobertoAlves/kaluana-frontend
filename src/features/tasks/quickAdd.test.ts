@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { parseQuickTask } from './quickAdd.ts'
 
-// Segunda-feira, 2 de novembro de 2026.
+
 const TODAY = new Date(2026, 10, 2)
 const parse = (s: string, ignore: string[] = []) => parseQuickTask(s, TODAY, new Set(ignore as never[]))
 
@@ -21,7 +21,7 @@ test('datas relativas e dias da semana', () => {
   assert.equal(parse('ligar até amanhã').title, 'Ligar')
   assert.equal(parse('feira no sábado').dueDate, '2026-11-07')
   assert.equal(parse('reunião sexta-feira').dueDate, '2026-11-06')
-  // Hoje é segunda: "segunda" é a da semana que vem, nunca hoje.
+
   assert.equal(parse('treino segunda').dueDate, '2026-11-09')
 })
 

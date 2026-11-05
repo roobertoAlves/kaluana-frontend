@@ -4,10 +4,6 @@ import type { AudioPlayer } from 'expo-audio'
 import type { TimerSound } from '../features/timer/timerSession'
 import { SOUNDS } from '../features/sounds/soundscape'
 
-/**
- * RF9/RF16: ruídos e paisagens sonoras. Os arquivos são gerados pela equipe
- * (scripts/generate-noise.mjs) e vêm dentro do app: nada de streaming nem custo.
- */
 const SOURCES: Record<Exclude<TimerSound, 'NONE'>, number> = {
   WHITE: require('../../assets/sounds/white-noise.wav'),
   PINK: require('../../assets/sounds/pink-noise.wav'),
@@ -25,11 +21,7 @@ export const SOUND_OPTIONS: { value: TimerSound; label: string }[] = [
   ...SOUNDS.map((s) => ({ value: s.value, label: s.label })),
 ]
 
-/**
- * Toca em loop enquanto {@code playing} for true. O player é criado e liberado
- * aqui dentro: pausar ou encerrar a sessão solta o recurso de áudio na hora.
- * {@code volume} pode mudar sem recriar o player (o Dormir diminui aos poucos).
- */
+
 export function useAmbientSound(sound: TimerSound, playing: boolean, volume: number = DEFAULT_VOLUME) {
   const player = useRef<AudioPlayer | null>(null)
   const latestVolume = useRef(volume)
@@ -42,7 +34,6 @@ export function useAmbientSound(sound: TimerSound, playing: boolean, volume: num
   useEffect(() => {
     if (sound === 'NONE' || !playing) return undefined
 
-    // Toca mesmo com o aparelho no modo silencioso: o usuário escolheu o som.
     setAudioModeAsync({ playsInSilentMode: true }).catch(() => {})
     const p = createAudioPlayer(SOURCES[sound])
     p.loop = true
@@ -51,8 +42,7 @@ export function useAmbientSound(sound: TimerSound, playing: boolean, volume: num
     player.current = p
     return () => {
       player.current = null
-      // pause() antes de remove(): no Android, liberar sem pausar deixava o som tocando.
-      p.pause()
+            p.pause()
       p.remove()
     }
   }, [sound, playing])

@@ -9,28 +9,25 @@ export interface AuthenticatedUser {
   role: UserRole
   nickname?: string | null
   avatarColor?: string | null
-  /** Conta nova só entra depois de clicar no link enviado por e-mail. */
+  
   emailVerified?: boolean
 }
 
-/** A outra ponta de um emparelhamento (GET /api/pairing/links). */
 export interface LinkedUser {
   userId: string
   name: string
   role: UserRole
   linkedAt: string
-  /** RF8: o que este vínculo autoriza (o principal edita; o responsável só vê). */
   permissions?: LinkPermissions
 }
 
 export interface AuthResponse {
   accessToken: string
-  /** RNF4: troca o token de acesso vencido sem pedir login de novo. */
   refreshToken?: string
   user: AuthenticatedUser
 }
 
-/** Cadastro com confirmação de e-mail: a conta existe, mas ainda sem sessão. */
+
 export interface PendingConfirmation {
   user: AuthenticatedUser
 }

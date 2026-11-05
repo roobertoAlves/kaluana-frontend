@@ -9,7 +9,6 @@ import { Wheel } from './Wheel'
 import { clampMinutes, dateWithTime, dayLabel, durationLabel, formatDay, formatTime, parseDay, parseTime, timeOfDate, wheelRange } from '../../../features/time/timeValues'
 import { colors, fonts, radius, spacing } from '../../../styles/tokens'
 
-/** Botão grande que mostra o valor escolhido e abre o seletor. */
 function FieldButton({ label, value, icon, onPress, hint }: { label: string; value: string; icon: IconName; onPress: () => void; hint?: string }) {
   return (
     <View style={styles.group}>
@@ -25,15 +24,10 @@ function FieldButton({ label, value, icon, onPress, hint }: { label: string; val
 
 interface TimeFieldProps {
   label: string
-  /** "HH:MM" */
   value: string
   onChange: (hhmm: string) => void
 }
 
-/**
- * Horário pelo relógio do próprio celular (Android: mostrador analógico; iOS:
- * rodas). Na web, rodas de horas e minutos. Nada de digitar "HH:MM".
- */
 export function TimeField({ label, value, onChange }: TimeFieldProps) {
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState(parseTime(value))
@@ -82,13 +76,11 @@ export function TimeField({ label, value, onChange }: TimeFieldProps) {
 
 interface DateFieldProps {
   label: string
-  /** "YYYY-MM-DD" */
   value: string
   onChange: (day: string) => void
   minimumDate?: Date
 }
 
-/** Data pelo calendário do celular; na web, rodas de dia, mês e ano. */
 export function DateField({ label, value, onChange, minimumDate }: DateFieldProps) {
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState(parseDay(value))
@@ -140,7 +132,6 @@ interface DurationFieldProps {
   max?: number
 }
 
-/** Duração como no temporizador do celular: rodas de horas e minutos. */
 export function DurationField({ label, minutes, onChange, min = 1, max = 600 }: DurationFieldProps) {
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState({ h: Math.floor(minutes / 60), m: minutes % 60 })

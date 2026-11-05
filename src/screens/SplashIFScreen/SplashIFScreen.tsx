@@ -9,11 +9,6 @@ type Props = NativeStackScreenProps<RootStackParamList, 'SplashIF'>
 
 const VIDEO_BACKGROUND = '#DAD6CB'
 
-/**
- * Splash do IF: só aparece na primeira abertura do app. O flag é gravado
- * assim que a tela abre, então nem fechar o app no meio do vídeo a repete.
- * Ao terminar (ou ao tocar), vai direto para a escolha de perfil.
- */
 export function SplashIFScreen({ navigation }: Props) {
   useEffect(() => {
     markIntroSeen()

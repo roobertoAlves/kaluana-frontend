@@ -12,7 +12,7 @@ interface Props {
   onUndo: (kind: QuickKind) => void
 }
 
-/** RF15: o que o app entendeu da frase. Tocar no × desfaz aquele item. */
+
 export function QuickChips({ parsed, onUndo }: Props) {
   if (parsed.tokens.length === 0) return null
   return (

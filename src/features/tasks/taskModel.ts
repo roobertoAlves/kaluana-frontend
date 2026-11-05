@@ -1,21 +1,14 @@
 import type { Task, TaskPriority } from '../../types/domain.ts'
 
-/**
- * Regras das tarefas (RF5) em funções puras: as mesmas para o modo com conta
- * (o servidor confirma) e sem conta (só no aparelho). Testadas sem interface.
- */
-
 export const MAX_STEPS = 12
 export const PRIORITY_LABEL: Record<TaskPriority, string> = { HIGH: 'Alta', MEDIUM: 'Média', LOW: 'Baixa' }
 const PRIORITY_RANK: Record<TaskPriority, number> = { HIGH: 0, MEDIUM: 1, LOW: 2 }
 
-/** Fração de microetapas concluídas (0 a 1); sem etapas, 0 ou 1 conforme a tarefa. */
 export function stepProgress(task: Task): number {
   if (task.steps.length === 0) return task.done ? 1 : 0
   return task.steps.filter((s) => s.done).length / task.steps.length
 }
 
-/** Pendentes primeiro; entre elas, as com data mais próxima e maior prioridade. */
 export function sortForList(tasks: Task[]): Task[] {
   return [...tasks].sort((a, b) => {
     if (a.done !== b.done) return a.done ? 1 : -1
@@ -26,7 +19,6 @@ export function sortForList(tasks: Task[]): Task[] {
   })
 }
 
-/** Etapas que viram as fases do temporizador ao "focar nesta tarefa" (até 4, curtas). */
 export function focusSteps(task: Task): string[] {
   return task.steps
     .filter((s) => !s.done)
@@ -51,7 +43,6 @@ export function withDone(task: Task, done: boolean, now: Date = new Date()): Tas
   return { ...task, done, completedAt: done ? now.toISOString() : null }
 }
 
-/** "25 min · Alta · hoje" (só o que existe). */
 export function taskMeta(task: Task, today: string): string {
   const parts: string[] = []
   if (task.estimatedMinutes) parts.push(`${task.estimatedMinutes} min`)
@@ -74,7 +65,6 @@ export const GROUP_TITLE: Record<TaskGroupKey, string> = {
   done: 'CONCLUÍDAS',
 }
 
-/** Agrupa para a lista: atrasadas, hoje, próximas, sem data e concluídas (nessa ordem). */
 export function groupTasks(tasks: Task[], today: string): { key: TaskGroupKey; tasks: Task[] }[] {
   const keyOf = (t: Task): TaskGroupKey => {
     if (t.done) return 'done'
@@ -87,7 +77,6 @@ export function groupTasks(tasks: Task[], today: string): { key: TaskGroupKey; t
   return order.map((key) => ({ key, tasks: sorted.filter((t) => keyOf(t) === key) })).filter((g) => g.tasks.length > 0)
 }
 
-/** Texto da confirmação ao concluir: avisa quando ainda há microetapas abertas. */
 export function doneConfirmation(task: Task): string {
   const open = task.steps.filter((s) => !s.done).length
   if (open === 0) return 'Ela sai da lista de pendentes. Dá para desfazer em "Concluídas".'

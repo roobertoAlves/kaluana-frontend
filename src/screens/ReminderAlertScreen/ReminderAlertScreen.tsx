@@ -9,7 +9,6 @@ import { colors, fonts, spacing } from '../../styles/tokens'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ReminderAlert'>
 
-/** L2 · lembrete disparado, aberto ao tocar na notificação. */
 export function ReminderAlertScreen({ navigation, route }: Props) {
   const { title } = route.params
   const isWater = title.toLowerCase().includes('água')

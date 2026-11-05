@@ -27,11 +27,6 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Tasks'>
 type Form = { mode: 'new' } | { mode: 'edit'; task: Task }
 type Confirm = { kind: 'done' | 'delete'; task: Task }
 
-/**
- * RF5/RF15: "o que eu preciso fazer?". A tarefa pode ser escrita numa frase
- * ("estudar amanhã 30min !alta") ou no formulário completo; a lista fica
- * agrupada por quando fazer, com confirmação antes de concluir ou apagar.
- */
 export function TasksScreen({ navigation }: Props) {
   const { accessToken } = useAuth()
   const tasks = useTasks()
@@ -50,7 +45,7 @@ export function TasksScreen({ navigation }: Props) {
   const pendingCount = tasks.items.filter((t) => !t.done).length
   const todayCount = groups.filter((g) => g.key === 'today' || g.key === 'overdue').reduce((n, g) => n + g.tasks.length, 0)
 
-  /** RF15: o que a frase disse vira a tarefa; o que ela não disse fica no padrão. */
+  
   async function quickAdd() {
     if (!parsed.title) return
     const saved = await tasks.add({
@@ -109,7 +104,6 @@ export function TasksScreen({ navigation }: Props) {
       expanded={expanded === task.id}
       assistantEnabled={assistant.enabled}
       onToggleExpand={() => setExpanded(expanded === task.id ? null : task.id)}
-      // Concluir pede confirmação; reabrir é direto (desfaz um engano).
       onToggleDone={() => (task.done ? void tasks.setDone(task, false) : setConfirm({ kind: 'done', task }))}
       onToggleStep={(stepId) => void tasks.toggleStep(task, stepId)}
       onAddStep={(text) => tasks.addStep(task, text)}

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { View } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import type { RootStackParamList } from '../../navigation/types'
 import { SidebarScreen } from '../../components/ui/SidebarScreen'
@@ -10,6 +10,10 @@ import { ArrowButton } from '../../components/ui/ArrowButton'
 import { SocialRow } from '../../components/ui/SocialRow'
 import { useAuth } from '../../context/AuthContext'
 import { login, ApiError } from '../../services/api'
+import { getApiBaseUrl } from '../../services/runtimeConfig'
+import { hostnameOf } from '../../features/api/apiAddress'
+import { colors, fonts } from '../../styles/tokens'
+import { ServerSheet } from './ServerSheet'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>
 
@@ -19,6 +23,7 @@ export function LoginScreen({ navigation }: Props) {
   const [password, setPassword] = useState('')
   const [formError, setFormError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [serverOpen, setServerOpen] = useState(false)
 
   async function handleSubmit() {
     setFormError(null)
@@ -34,7 +39,7 @@ export function LoginScreen({ navigation }: Props) {
       setSession(auth)
       navigation.reset({ index: 0, routes: [{ name: 'LoginSuccess' }] })
     } catch (error) {
-      // 403 com a senha certa = conta ainda não confirmada: leva para a tela do e-mail.
+
       if (error instanceof ApiError && error.status === 403) {
         navigation.navigate('CheckEmail', { email: email.trim() })
         return
@@ -90,6 +95,15 @@ export function LoginScreen({ navigation }: Props) {
       </View>
 
       <AuthFooterLinks />
+      <Pressable onPress={() => setServerOpen(true)} accessibilityRole="button" accessibilityLabel="Alterar o servidor da API" hitSlop={8} style={styles.server}>
+        <Text style={styles.serverText}>servidor: {hostnameOf(getApiBaseUrl())} · alterar</Text>
+      </Pressable>
+      {serverOpen && <ServerSheet visible onClose={() => setServerOpen(false)} />}
     </SidebarScreen>
   )
 }
+
+const styles = StyleSheet.create({
+  server: { alignSelf: 'center', minHeight: 44, justifyContent: 'center' },
+  serverText: { fontFamily: fonts.body, fontSize: 12.8, color: colors.inkSoft, textDecorationLine: 'underline' },
+})

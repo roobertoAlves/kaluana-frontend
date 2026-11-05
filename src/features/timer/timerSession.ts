@@ -1,9 +1,3 @@
-/**
- * Sessão do temporizador (T1 a T3). Funções puras: o tempo entra como `now`
- * (ms), então dá para testar sem relógio real. Prazo absoluto (`endsAt`),
- * assim fechar o app não perde a contagem.
- * Sem pontuação nem julgamento: a sessão só registra que terminou.
- */
 export type TimerStatus = 'RUNNING' | 'PAUSED' | 'DONE' | 'CANCELED'
 
 export type TimerSound = 'NONE' | 'WHITE' | 'PINK' | 'BROWN' | 'RAIN' | 'WAVES' | 'FIRE' | 'FOREST'
@@ -16,7 +10,6 @@ export interface TimerSession {
   steps: string[]
   water: boolean
   sound: TimerSound
-  /** Som silenciado nesta sessão (vale até ela acabar, em qualquer tela). */
   muted: boolean
   startedAt: number
   status: TimerStatus
@@ -33,9 +26,7 @@ export interface StartOptions {
   minutes: number
   steps: string[]
   water: boolean
-  /** RF9: som ambiente tocado durante a sessão. */
   sound?: TimerSound
-  /** Tarefa (RF5) de onde a sessão foi iniciada, se houver. */
   taskId?: string | null
 }
 
@@ -64,7 +55,6 @@ export function remainingMs(s: TimerSession, now: number): number {
   return 0
 }
 
-/** Conclui a sessão se o prazo venceu (também ao reabrir o app). */
 export function reevaluateTimer(s: TimerSession, now: number): TimerSession {
   if (s.status === 'RUNNING' && s.endsAt !== null && s.endsAt <= now) {
     return { ...s, status: 'DONE', finishedAt: s.endsAt, endsAt: null }
@@ -93,21 +83,17 @@ export function cancelTimer(s: TimerSession, now: number): TimerSession {
   return { ...s, status: 'CANCELED', endsAt: null, remainingMs: null, finishedAt: now }
 }
 
-/** Liga ou silencia o som ambiente sem mexer no tempo. */
 export function setMuted(s: TimerSession, muted: boolean): TimerSession {
   return s.muted === muted ? s : { ...s, muted }
 }
 
-/** O som deve tocar agora? Só com sessão rodando, som escolhido e não silenciado. */
 export const soundPlaying = (s: TimerSession | null) => !!s && s.status === 'RUNNING' && s.sound !== 'NONE' && !s.muted
 
-/** Fração concluída, de 0 a 1. */
 export function progress(s: TimerSession, now: number): number {
   if (s.status === 'DONE') return 1
   return Math.min(1, Math.max(0, 1 - remainingMs(s, now) / s.totalMs))
 }
 
-/** Etapa atual: o tempo total é dividido igualmente entre as etapas. */
 export function currentStep(s: TimerSession, now: number): number {
   if (s.steps.length === 0) return -1
   return Math.min(s.steps.length - 1, Math.floor(progress(s, now) * s.steps.length))

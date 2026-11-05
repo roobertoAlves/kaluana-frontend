@@ -1,3 +1,3 @@
-{
-  "extends": ["expo", "prettier"]
+module.exports = {
+  extends: ['expo', 'prettier'],
 }

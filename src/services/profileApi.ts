@@ -4,7 +4,6 @@ import { DEFAULT_PROFILE } from '../features/profile/profile'
 import type { LocalProfile } from '../features/profile/profile'
 import { apiRequest } from './http'
 
-/** Perfil · GET /api/users/me e PUT /api/users/me/profile. Idioma e tema seguem só no aparelho. */
 const toProfile = (u: AuthenticatedUser): LocalProfile => ({
   ...DEFAULT_PROFILE,
   displayName: u.name,

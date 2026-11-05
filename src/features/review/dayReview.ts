@@ -1,10 +1,6 @@
 import type { Task } from '../../types/domain.ts'
 
-/**
- * RF17 / RNF1: revisão do fim do dia (Sunsama). Regras puras: o que foi feito
- * no dia, o que ficou pendente e como cada decisão muda a tarefa. A API aplica
- * as mesmas decisões; sem conta, elas rodam aqui.
- */
+
 
 export type ReviewAction = 'TOMORROW' | 'NO_DATE' | 'DONE'
 export type DayFeeling = 'HARD' | 'OK' | 'GOOD'
@@ -26,7 +22,7 @@ export const ACTIONS: { value: ReviewAction; label: string }[] = [
   { value: 'DONE', label: 'Concluí' },
 ]
 
-/** Atalho na tela inicial: das 18h em diante, enquanto o dia não foi revisado. */
+
 export const REVIEW_FROM_HOUR = 18
 
 const pad = (n: number) => String(n).padStart(2, '0')
@@ -37,12 +33,12 @@ export function nextDay(day: string): string {
   return dayOf(new Date(y, m - 1, d + 1))
 }
 
-/** Concluídas no dia (pelo horário local de conclusão). */
+
 export function completedOn(tasks: Task[], day: string): Task[] {
   return tasks.filter((t) => t.done && t.completedAt && dayOf(new Date(t.completedAt)) === day)
 }
 
-/** Pendentes com data até o dia: as que "eram de hoje" (ou atrasadas). */
+
 export function pendingFor(tasks: Task[], day: string): Task[] {
   return tasks.filter((t) => !t.done && t.dueDate !== null && t.dueDate <= day)
 }
@@ -51,7 +47,7 @@ export function shouldOfferReview(now: Date, lastReviewedDay: string | null): bo
   return now.getHours() >= REVIEW_FROM_HOUR && lastReviewedDay !== dayOf(now)
 }
 
-/** A tarefa depois da decisão (mesma regra do back-end). */
+
 export function applyMove(task: Task, action: ReviewAction, day: string, now: Date = new Date()): Task {
   switch (action) {
     case 'TOMORROW':
@@ -63,7 +59,7 @@ export function applyMove(task: Task, action: ReviewAction, day: string, now: Da
   }
 }
 
-/** Frase do fim da revisão ("1 tarefa foi para amanhã e 1 ficou sem data."). */
+
 export function summaryLine(moves: ReviewMove[]): string {
   const count = (a: ReviewAction) => moves.filter((m) => m.action === a).length
   const parts: string[] = []

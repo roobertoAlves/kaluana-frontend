@@ -9,14 +9,11 @@ interface Props {
   onCancel: () => void
   onConfirm: () => void
   confirmLabel?: string
-  /** Ação destrutiva (ex.: apagar): botão em vermelho. */
   danger?: boolean
-  /** Conteúdo longo (formulários): rola dentro da folha. */
   scroll?: boolean
   children: ReactNode
 }
 
-/** Folha inferior com Cancelar/Confirmar: base dos seletores de horário, data e duração. */
 export function Sheet({ visible, title, onCancel, onConfirm, confirmLabel = 'Confirmar', danger, scroll, children }: Props) {
   const insets = useSafeAreaInsets()
   return (

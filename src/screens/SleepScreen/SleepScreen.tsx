@@ -13,11 +13,6 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Sleep'>
 
 const clock = (d: Date) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 
-/**
- * RF16 · Dormir: tela escura, som que baixa aos poucos e para sozinho. A tela
- * fica ligada (e escura) para o volume e a parada não dependerem do sistema
- * deixar o app rodando em segundo plano.
- */
 export function SleepScreen({ navigation, route }: Props) {
   useKeepAwake()
   const insets = useSafeAreaInsets()

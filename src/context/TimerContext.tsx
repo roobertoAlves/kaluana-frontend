@@ -8,13 +8,11 @@ import { addMinute, cancelTimer, pauseTimer, reevaluateTimer, resumeTimer, setMu
 import { useAmbientSound } from '../hooks/useAmbientSound'
 import type { StartOptions, TimerSession } from '../features/timer/timerSession'
 
-/** Sessões salvas por versões anteriores do app não tinham som, tarefa nem "silenciado". */
 const normalize = (s: TimerSession | null): TimerSession | null =>
   s ? { ...s, sound: s.sound ?? 'NONE', taskId: s.taskId ?? null, muted: s.muted ?? false } : null
 
 interface TimerContextValue {
   session: TimerSession | null
-  /** Horário atual (atualiza a cada segundo enquanto há sessão rodando). */
   now: number
   start: (o: StartOptions) => void
   pause: () => void
@@ -22,21 +20,17 @@ interface TimerContextValue {
   plusMinute: () => void
   cancel: () => void
   clear: () => void
-  /** Liga/silencia o som ambiente da sessão (o estado fica salvo na sessão). */
   toggleMute: () => void
 }
 
 const Ctx = createContext<TimerContextValue | null>(null)
 
-/** Guarda a sessão do temporizador (única, persistida) para Home, mini-player e telas T1 a T3. */
 export function TimerProvider({ children }: { children: ReactNode }) {
   const { user, accessToken } = useAuth()
   const userId = user?.id ?? 'anon'
   const [session, setSession] = useState<TimerSession | null>(null)
   const [now, setNow] = useState(() => Date.now())
   const ref = useRef<TimerSession | null>(null)
-  // RF9: o som segue a sessão, em qualquer tela: toca rodando, para ao pausar,
-  // silenciar ou encerrar. Fica aqui (e não na tela) para nunca ficar "preso".
   useAmbientSound(session?.sound ?? 'NONE', soundPlaying(session))
 
   const commit = useCallback(
@@ -45,7 +39,6 @@ export function TimerProvider({ children }: { children: ReactNode }) {
       ref.current = next
       setSession(next)
       void writeJson(userId, 'timer-session', next)
-      // Registra no servidor só na transição para DONE/CANCELED (uma vez por sessão).
       if (accessToken && next && next.status !== prev?.status && (next.status === 'DONE' || next.status === 'CANCELED')) {
         void registerTimerSession(accessToken, next).catch(() => {})
       }
@@ -53,7 +46,6 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     [userId, accessToken],
   )
 
-  // Carrega a sessão guardada e reavalia (cobre fechar e reabrir o app).
   useEffect(() => {
     let alive = true
     readJson<TimerSession | null>(userId, 'timer-session', null).then((stored) => {
@@ -61,7 +53,6 @@ export function TimerProvider({ children }: { children: ReactNode }) {
       if (!alive) return
       ref.current = s
       const evaluated = s ? reevaluateTimer(s, Date.now()) : null
-      // Se o prazo venceu com o app fechado, passa pelo commit para registrar o fim.
       if (evaluated !== s) commit(evaluated)
       else setSession(s)
     })

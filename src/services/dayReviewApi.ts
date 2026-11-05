@@ -9,7 +9,7 @@ export interface DayReviewResult {
   completed: number
 }
 
-/** RF17 · PUT /api/day-reviews/{date}: aplica as decisões numa transação e guarda o resumo. */
+
 export function saveDayReview(token: string, date: string, body: { feeling: DayFeeling | null; moves: ReviewMove[] }) {
   return apiRequest<DayReviewResult>(`/api/day-reviews/${date}`, { method: 'PUT', token, body })
 }

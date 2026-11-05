@@ -1,12 +1,5 @@
 import type { CheckIn, EventCategory, LifeEvent, LinkRelationship, TaskPriority } from '../../types/domain'
 
-/**
- * Relatório informativo (RF7). Só conta e lista o que o usuário registrou.
- * Não calcula pontuações, não classifica, não sugere nada (RNF6, diretriz NICE).
- *
- * `ReportSummary` tem o mesmo formato de GET /api/reports: o app formata
- * igual o relatório vindo do servidor e o montado localmente (sem login).
- */
 export const CATEGORY_LABEL: Record<EventCategory, string> = {
   SOCIAL: 'Social',
   IMPULSIVIDADE: 'Impulsividade',
@@ -51,9 +44,7 @@ export interface ReportSummary {
   userName: string
   periodDays: number
   generatedAt: string
-  /** true quando é a versão para quem está vinculado (só seções autorizadas). */
   shared: boolean
-  /** Nome de quem está vinculado e gerou o relatório (versão compartilhada). */
   preparedFor?: string
   relationship?: LinkRelationship
   events?: { total: number; byCategory: Partial<Record<EventCategory, number>>; urgent: number; entries?: ReportEventEntry[] }
@@ -66,7 +57,6 @@ export interface ReportSummary {
   tasks?: { pending: number; completed: ReportTaskEntry[] }
 }
 
-/** Seções que uma pessoa vinculada pode ver (RF8). */
 export interface ReportScope {
   events: boolean
   checkins: boolean
@@ -82,10 +72,8 @@ export interface ReportInput {
   now?: Date
 }
 
-/** "YYYY-MM-DD" → "DD/MM/YYYY" sem passar por Date (evita erro de fuso). */
 export const fmtDay = (day: string) => day.split('-').reverse().join('/')
 
-/** ISO → "DD/MM/YYYY HH:MM" no fuso do aparelho. */
 export function fmtDateTime(iso: string): string {
   const d = new Date(iso)
   const pad = (n: number) => String(n).padStart(2, '0')
@@ -118,7 +106,6 @@ export function summarizeLocal({ userName, days, events, checkins, now = new Dat
   }
 }
 
-/** Prévia do que uma pessoa vinculada verá: remove as seções não autorizadas (RF8). */
 export function applyAccess(summary: ReportSummary, scope: ReportScope, preparedFor?: string): ReportSummary {
   return {
     ...summary,
@@ -181,7 +168,6 @@ export function formatReport(r: ReportSummary): string {
   return out.join('\n')
 }
 
-/** Atalho para o relatório montado só com dados locais. */
 export function buildReportText(input: ReportInput): string {
   return formatReport(summarizeLocal(input))
 }

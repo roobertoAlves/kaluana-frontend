@@ -6,10 +6,6 @@ interface BackButtonProps {
   spacing?: number
 }
 
-/**
- * "← VOLTAR" em branco com mix-blend-mode: difference, como no base:
- * fica claro sobre a faixa azul e escuro quando sai dela.
- */
 export function BackButton({ onPress, spacing = 32 }: BackButtonProps) {
   return (
     <Pressable

@@ -6,10 +6,6 @@ const BOX_WIDTH = 20
 const BOX_HEIGHT = 150
 const LINE_HEIGHT = 16
 
-/**
- * Rótulo vertical (`writing-mode: vertical-rl`) no canto inferior esquerdo.
- * O texto é alinhado à direita e girado 90°, então termina rente à base.
- */
 export function VerticalLabel({ text }: { text: string }) {
   const insets = useSafeAreaInsets()
 

@@ -4,7 +4,6 @@ import { PressableScale } from '../motion/PressableScale'
 import type { TextInputProps } from 'react-native'
 import { colors, fonts, radius, spacing } from '../../styles/tokens'
 
-/** Grupo de opções fixas (alvo de toque ≥ 48, RNF5). */
 export function ChipGroup<T extends string | number>({
   label,
   options,

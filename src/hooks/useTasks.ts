@@ -4,10 +4,6 @@ import { tasksSource, addStep, removeStep, updateStep } from '../services/tasksA
 import { newId } from '../services/storage'
 import { withDone, withStepAdded, withStepRemoved, withStepToggled } from '../features/tasks/taskModel'
 
-/**
- * RF5: tarefas e microetapas. Com conta, cada ação passa pela API; sem conta,
- * as mesmas regras (taskModel) rodam só no aparelho. As telas não sabem a diferença.
- */
 export function useTasks() {
   const collection = useCollection<Task>(tasksSource)
   const { items, mutate, upsert } = collection

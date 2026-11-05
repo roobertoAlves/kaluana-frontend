@@ -82,7 +82,7 @@ export function ResponsibleRegisterScreen({ navigation }: Props) {
         password: form.password,
         code: code.trim(),
       })
-      // Com confirmação de e-mail ligada, a conta só entra depois do clique no link.
+
       if (isPendingConfirmation(auth)) {
         navigation.reset({ index: 0, routes: [{ name: 'CheckEmail', params: { email: auth.user.email } }] })
         return

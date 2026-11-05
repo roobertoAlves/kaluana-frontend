@@ -7,13 +7,6 @@ interface WedgeBackgroundProps {
   narrowWidth?: number
 }
 
-/**
- * Porte do clip-path: polygon(0 0, 100% 0, 120px 100%, 0 100%) usado em
- * PrimaryRegisterScreen.module.css/.sidebar. React Native não tem
- * clip-path, então o mesmo polígono é desenhado com react-native-svg,
- * usando a largura real da tela (não percentual) para o cálculo do
- * ponto de afunilamento ficar exato em pixels, como no CSS original.
- */
 export function WedgeBackground({ height, narrowWidth = 120 }: WedgeBackgroundProps) {
   const { width } = useWindowDimensions()
 

@@ -30,7 +30,7 @@ const HINT: Record<Mode, string> = {
 }
 const ICON: Record<Soundscape, IconName> = { RAIN: 'drop', WAVES: 'wave', FIRE: 'flame', FOREST: 'leaf', BROWN: 'sound', PINK: 'sound', WHITE: 'sound' }
 
-/** RF16 (Endel): sons gerados no aparelho para focar, relaxar e dormir. */
+
 export function SoundsScreen({ navigation }: Props) {
   const suggestion = suggestSound()
   const [mode, setMode] = useState<Mode>('RELAX')

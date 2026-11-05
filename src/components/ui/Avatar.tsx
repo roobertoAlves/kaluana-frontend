@@ -6,7 +6,6 @@ interface Props {
   name: string
   color: string
   size?: number
-  /** Mostra o botão laranja de lápis no canto. */
   onEdit?: () => void
 }
 

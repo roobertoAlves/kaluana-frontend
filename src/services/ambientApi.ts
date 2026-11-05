@@ -10,7 +10,7 @@ export interface AmbientSession {
   finishedAt: number
 }
 
-/** RF16 · /api/ambient-sessions. O som toca no aparelho; a API guarda só o registro da sessão. */
+
 export function registerAmbientSession(token: string, s: AmbientSession) {
   return apiRequest<void>('/api/ambient-sessions', {
     method: 'POST',
