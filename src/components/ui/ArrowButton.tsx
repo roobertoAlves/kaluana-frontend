@@ -8,14 +8,9 @@ type ArrowButtonVariant = 'primary' | 'secondary'
 interface ArrowButtonProps extends Omit<PressableProps, 'style' | 'children'> {
   label: string
   variant?: ArrowButtonVariant
-  /** Bloqueia toques repetidos enquanto a requisição está em andamento. */
   loading?: boolean
 }
 
-/**
- * Botão retangular com o texto à esquerda e a seta "→" à direita, como no base.
- * Afunda levemente ao toque (sem animação se o sistema pedir menos movimento).
- */
 export function ArrowButton({ label, variant = 'primary', loading = false, disabled, ...rest }: ArrowButtonProps) {
   const isPrimary = variant === 'primary'
   const isDisabled = Boolean(disabled) || loading

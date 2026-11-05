@@ -14,7 +14,6 @@ type Props = NativeStackScreenProps<RootStackParamList, 'TimerPlan'>
 
 const PRESETS = [5, 15, 25, 45].map((m) => ({ value: m, label: `${m} min` }))
 
-/** T1 · planejar a sessão (1 de 2): tarefa, duração, etapas e lembrete de água. O som vem na etapa 2. */
 export function TimerPlanScreen({ navigation, route }: Props) {
   const preset = route.params?.preset
   const { session } = useTimer()
@@ -27,7 +26,7 @@ export function TimerPlanScreen({ navigation, route }: Props) {
 
   async function next() {
     if (water) await ensureNotificationSetup().catch(() => false)
-    navigation.navigate('TimerSound', { plan: { task, minutes, steps, water, taskId: preset?.taskId ?? null } })
+    navigation.navigate('TimerSound', { plan: { task, minutes, steps, water, taskId: preset?.taskId ?? null, sound: preset?.sound } })
   }
 
   return (

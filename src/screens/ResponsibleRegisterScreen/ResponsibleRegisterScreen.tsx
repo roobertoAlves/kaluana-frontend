@@ -9,6 +9,7 @@ import { CoordinateField } from '../../components/ui/CoordinateField'
 import { ArrowButton } from '../../components/ui/ArrowButton'
 import { useAuth } from '../../context/AuthContext'
 import { validateCode, registerResponsible, ApiError } from '../../services/api'
+import { isPendingConfirmation } from '../../types'
 import { colors, fonts } from '../../styles/tokens'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ResponsibleRegister'>
@@ -81,6 +82,11 @@ export function ResponsibleRegisterScreen({ navigation }: Props) {
         password: form.password,
         code: code.trim(),
       })
+
+      if (isPendingConfirmation(auth)) {
+        navigation.reset({ index: 0, routes: [{ name: 'CheckEmail', params: { email: auth.user.email } }] })
+        return
+      }
       setSession(auth)
       navigation.reset({ index: 0, routes: [{ name: 'LoginSuccess' }] })
     } catch (error) {

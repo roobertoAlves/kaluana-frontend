@@ -16,10 +16,6 @@ import { colors, fonts, radius, spacing } from '../../styles/tokens'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TimerSound'>
 
-/**
- * T1b · segunda etapa do planejamento: escolher o som num "player", com capa,
- * nome, descrição e prévia. O som só toca na prévia (botão) e durante a sessão.
- */
 export function TimerSoundScreen({ navigation, route }: Props) {
   const { plan } = route.params
   const { start } = useTimer()
@@ -30,7 +26,6 @@ export function TimerSoundScreen({ navigation, route }: Props) {
 
   function choose(s: TimerSound) {
     setSound(s)
-    // Trocar de som com a prévia ligada já toca o novo; "Sem som" desliga.
     if (s === 'NONE') setPreviewing(false)
   }
 

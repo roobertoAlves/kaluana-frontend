@@ -2,12 +2,6 @@ import { useCallback, useEffect, useRef } from 'react'
 import { useVideoPlayer } from 'expo-video'
 import type { VideoSource } from 'expo-video'
 
-/**
- * Toca um vídeo de splash uma única vez, com som, e chama `onFinish` quando
- * ele termina, quando o usuário toca na tela (`finish`) ou se o vídeo falhar.
- * `onFinish` roda no máximo uma vez, então toque + fim do vídeo não navegam
- * duas vezes e o vídeo nunca reinicia.
- */
 export function useSplashVideo(source: VideoSource, onFinish: () => void) {
   const finishedRef = useRef(false)
 

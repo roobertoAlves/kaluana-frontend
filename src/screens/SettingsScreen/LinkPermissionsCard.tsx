@@ -28,11 +28,6 @@ interface Props {
   onUnlink: () => void
 }
 
-/**
- * RF8: autorização de UMA pessoa conectada. O usuário principal escolhe o
- * perfil (familiar, profissional de saúde...) e o que ela pode ver; cada
- * mudança é salva na hora e desfeita se o servidor recusar.
- */
 export function LinkPermissionsCard({ token, link, onUnlink }: Props) {
   const [value, setValue] = useState<LinkPermissions>(link.permissions ?? NOTHING)
   const [error, setError] = useState<string | null>(null)
@@ -82,7 +77,6 @@ export function LinkPermissionsCard({ token, link, onUnlink }: Props) {
   )
 }
 
-/** Visão do responsável: o que a pessoa liberou para ele (só leitura). */
 export function GrantedSummary({ link }: { link: LinkedUser }) {
   const p = link.permissions
   const granted = p ? PERMISSION_ROWS.filter((r) => p[r.key]).map((r) => r.label.toLowerCase()) : []

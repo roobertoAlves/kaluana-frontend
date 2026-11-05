@@ -2,11 +2,6 @@ import { StyleSheet } from 'react-native'
 import Svg, { Circle, Defs, Pattern, Rect } from 'react-native-svg'
 import { colors } from '../../styles/tokens'
 
-/**
- * Fundo pontilhado das telas: equivale ao
- * `radial-gradient(sand 1px, transparent 1px)` com `background-size: 24px`
- * do projeto base.
- */
 export function DotGrid() {
   return (
     <Svg style={styles.fill}>

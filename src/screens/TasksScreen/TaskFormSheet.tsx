@@ -37,16 +37,11 @@ function whenOf(due: string | null): When {
 
 interface Props {
   visible: boolean
-  /** Tarefa a editar; sem ela, cria uma nova. */
   task?: Task | null
   onCancel: () => void
   onSave: (task: Task) => void
 }
 
-/**
- * Formulário completo de tarefa numa folha (RF5): título, prioridade, duração
- * pelo relógio, data pelo calendário e, ao criar, as microetapas.
- */
 export function TaskFormSheet({ visible, task, onCancel, onSave }: Props) {
   const [title, setTitle] = useState(task?.title ?? '')
   const [priority, setPriority] = useState<TaskPriority>(task?.priority ?? 'MEDIUM')

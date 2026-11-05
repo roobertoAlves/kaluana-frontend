@@ -11,7 +11,6 @@ interface CheckBoxProps {
   size?: number
 }
 
-/** Caixa de seleção com alvo de 44 px; o visto cresce ao marcar (feedback de conclusão). */
 export function CheckBox({ checked, onToggle, label, size = 26 }: CheckBoxProps) {
   const reduced = useReducedMotion()
   const [scale] = useState(() => new Animated.Value(checked ? 1 : 0))
@@ -40,7 +39,6 @@ export function CheckBox({ checked, onToggle, label, size = 26 }: CheckBoxProps)
   )
 }
 
-/** Duração exportada para quem quer atrasar uma ação até o visto aparecer. */
 export const CHECK_ANIMATION_MS = motion.base
 
 const styles = StyleSheet.create({

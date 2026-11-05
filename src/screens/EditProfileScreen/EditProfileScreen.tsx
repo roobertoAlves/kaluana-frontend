@@ -14,7 +14,6 @@ import { colors, fonts, radius, spacing } from '../../styles/tokens'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EditProfile'>
 
-/** 3.2 · editar perfil: avatar, nome, apelido e preferências. */
 export function EditProfileScreen({ navigation }: Props) {
   const { user } = useAuth()
   const { value: profile, update, loaded, error } = useProfile()
@@ -24,8 +23,6 @@ export function EditProfileScreen({ navigation }: Props) {
 
   const [synced, setSynced] = useState(false)
 
-  // Preenche o formulário uma vez, quando o perfil salvo termina de carregar
-  // (ajuste durante a renderização, sem efeito).
   if (loaded && !synced) {
     setSynced(true)
     setName(profile.displayName || user?.name || '')

@@ -6,10 +6,6 @@ interface SignalMarkProps {
   size?: number
 }
 
-/**
- * Selo da raposa: quadrado girado 45° com borda laranja e a logo
- * contra-girada dentro. Igual ao SignalMark do projeto base.
- */
 export function SignalMark({ size = 56 }: SignalMarkProps) {
   return (
     <View style={[styles.frame, { width: size, height: size }]}>

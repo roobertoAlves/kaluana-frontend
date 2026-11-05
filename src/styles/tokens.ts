@@ -1,8 +1,3 @@
-/**
- * Tokens visuais do Kaluanã, espelhando 1:1 o src/styles/tokens.css
- * do kaluana-frontend-base (mesma paleta, mesma escala de espaçamento).
- */
-
 export const colors = {
   ink: '#1F3556',
   inkSoft: '#234E70',
@@ -29,11 +24,9 @@ export const colors = {
   danger: '#E85A4F',
   success: '#7DAA84',
 
-  /** Terceiro bloco da tela "por onde você quer começar?". */
   darkWedge: '#152840',
   white: '#FFFFFF',
 
-  /** Cores usadas só na Home e no BottomMenu do projeto base. */
   homeBackground: '#F8F9FA',
   homeText: '#333333',
   homeTextMuted: '#666666',
@@ -61,7 +54,6 @@ export const radius = {
 
 export const maxWidthScreen = 480
 
-/** Mesmas famílias do projeto base, carregadas via expo-font em App.tsx. */
 export const fonts = {
   display: 'SpaceGrotesk_700Bold',
   displayMedium: 'SpaceGrotesk_500Medium',

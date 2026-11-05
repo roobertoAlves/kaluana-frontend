@@ -26,6 +26,7 @@ import { SplashIFScreen } from './src/screens/SplashIFScreen/SplashIFScreen'
 import { SplashScreen } from './src/screens/SplashScreen/SplashScreen'
 import { ProfileSelectionScreen } from './src/screens/ProfileSelectionScreen/ProfileSelectionScreen'
 import { LoginScreen } from './src/screens/LoginScreen/LoginScreen'
+import { CheckEmailScreen } from './src/screens/CheckEmailScreen/CheckEmailScreen'
 import { PrimaryRegisterScreen } from './src/screens/PrimaryRegisterScreen/PrimaryRegisterScreen'
 import { ResponsibleRegisterScreen } from './src/screens/ResponsibleRegisterScreen/ResponsibleRegisterScreen'
 import { LoginSuccessScreen } from './src/screens/LoginSuccessScreen/LoginSuccessScreen'
@@ -44,26 +45,26 @@ import { TimerPlanScreen } from './src/screens/TimerPlanScreen/TimerPlanScreen'
 import { TimerScreen } from './src/screens/TimerScreen/TimerScreen'
 import { TimerSoundScreen } from './src/screens/TimerSoundScreen/TimerSoundScreen'
 import { TimerDoneScreen } from './src/screens/TimerDoneScreen/TimerDoneScreen'
+import { SoundsScreen } from './src/screens/SoundsScreen/SoundsScreen'
+import { RelaxScreen } from './src/screens/RelaxScreen/RelaxScreen'
+import { SleepScreen } from './src/screens/SleepScreen/SleepScreen'
+import { DayReviewScreen } from './src/screens/DayReviewScreen/DayReviewScreen'
 import { ReminderAlertScreen } from './src/screens/ReminderAlertScreen/ReminderAlertScreen'
 import { TimerProvider } from './src/context/TimerContext'
 import { getInitialTap, listenNotificationTaps } from './src/services/notifications'
 import type { NotificationTap } from './src/services/notifications'
 
-SplashScreenModule.preventAutoHideAsync().catch(() => {
-  // Se isso falhar (chamado duas vezes, por exemplo), não é fatal.
-})
+SplashScreenModule.preventAutoHideAsync().catch(() => {})
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
 const navRef = createNavigationContainerRef<RootStackParamList>()
 
-/** Toque em notificação: lembrete abre a tela L2; fim de sessão abre o temporizador. */
 function openFromTap(t: NotificationTap) {
   if (!navRef.isReady()) return
   if (t.kind === 'session') navRef.navigate('TimerDone')
   else navRef.navigate('ReminderAlert', { title: t.title, reminderId: t.reminderId })
 }
 
-/** Renovação da sessão falhou (ex.: 30 dias sem uso): volta para o login. */
 function goToLogin() {
   if (navRef.isReady()) navRef.reset({ index: 0, routes: [{ name: 'Login' }] })
 }
@@ -80,8 +81,6 @@ export default function App() {
   })
 
   useEffect(() => {
-    // A splash do IF só aparece na primeira abertura: o flag precisa estar
-    // lido antes de o navegador montar a rota inicial.
     Promise.all([initRuntimeConfig(), hasSeenIntro().then(setIntroSeen)]).finally(() => setConfigReady(true))
   }, [])
 
@@ -110,7 +109,6 @@ export default function App() {
           <NavigationContainer
             ref={navRef}
             onReady={() => {
-              // App aberto a partir de uma notificação com o app fechado.
               void getInitialTap().then((t) => t && openFromTap(t))
             }}
           >
@@ -123,6 +121,7 @@ export default function App() {
               <Stack.Screen name="Splash" component={SplashScreen} />
               <Stack.Screen name="ProfileSelection" component={ProfileSelectionScreen} />
               <Stack.Screen name="Login" component={LoginScreen} />
+              <Stack.Screen name="CheckEmail" component={CheckEmailScreen} />
               <Stack.Screen name="PrimaryRegister" component={PrimaryRegisterScreen} />
               <Stack.Screen name="ResponsibleRegister" component={ResponsibleRegisterScreen} />
               <Stack.Screen name="LoginSuccess" component={LoginSuccessScreen} />
@@ -141,6 +140,10 @@ export default function App() {
               <Stack.Screen name="TimerSound" component={TimerSoundScreen} />
               <Stack.Screen name="Timer" component={TimerScreen} />
               <Stack.Screen name="TimerDone" component={TimerDoneScreen} />
+              <Stack.Screen name="Sounds" component={SoundsScreen} />
+              <Stack.Screen name="Relax" component={RelaxScreen} />
+              <Stack.Screen name="Sleep" component={SleepScreen} />
+              <Stack.Screen name="DayReview" component={DayReviewScreen} />
               <Stack.Screen name="ReminderAlert" component={ReminderAlertScreen} />
             </Stack.Navigator>
           </NavigationContainer>

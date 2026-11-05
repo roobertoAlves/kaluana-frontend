@@ -1,7 +1,6 @@
 import Svg, { Circle, Defs, LinearGradient, Path, Rect, Stop } from 'react-native-svg'
 import type { SoundInfo } from '../../features/timer/sounds'
 
-/** "Capa" do som, desenhada em SVG a partir das cores do catálogo (sem imagens externas). */
 export function SoundArt({ info, size }: { info: SoundInfo; size: number }) {
   const [bg, accent] = info.art
   const id = `g-${info.value}`

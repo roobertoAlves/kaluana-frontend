@@ -1,22 +1,25 @@
-import { useState } from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { useMemo, useState } from 'react'
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import type { RootStackParamList } from '../../navigation/types'
 import type { Task } from '../../types/domain'
 import { Screen } from '../../components/ui/Screen'
-import { ArrowButton } from '../../components/ui/ArrowButton'
 import { formStyles } from '../../components/ui/forms'
 import { Icon } from '../../components/ui/Icons'
+import { PressableScale } from '../../components/motion/PressableScale'
 import { Sheet } from '../../components/ui/pickers/Sheet'
 import { useAuth } from '../../context/AuthContext'
 import { useTasks } from '../../hooks/useTasks'
 import { useAssistantStatus } from '../../hooks/useAssistantStatus'
 import { suggestSteps } from '../../services/assistantApi'
 import { errorMessage } from '../../services/http'
-import { todayKey } from '../../services/storage'
+import { newId, todayKey } from '../../services/storage'
 import { GROUP_TITLE, doneConfirmation, focusSteps, groupTasks } from '../../features/tasks/taskModel'
+import { parseQuickTask } from '../../features/tasks/quickAdd'
+import type { QuickKind } from '../../features/tasks/quickAdd'
 import { TaskRow } from './TaskRow'
 import { TaskFormSheet } from './TaskFormSheet'
+import { QuickChips } from './QuickChips'
 import { colors, fonts, radius, spacing } from '../../styles/tokens'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Tasks'>
@@ -24,24 +27,46 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Tasks'>
 type Form = { mode: 'new' } | { mode: 'edit'; task: Task }
 type Confirm = { kind: 'done' | 'delete'; task: Task }
 
-/**
- * RF5: "o que eu preciso fazer?". Uma ação principal (Nova tarefa), a lista
- * agrupada por quando fazer, e confirmação antes de concluir ou apagar.
- */
 export function TasksScreen({ navigation }: Props) {
   const { accessToken } = useAuth()
   const tasks = useTasks()
   const assistant = useAssistantStatus()
+  const [title, setTitle] = useState('')
+  const [ignored, setIgnored] = useState<ReadonlySet<QuickKind>>(new Set())
   const [form, setForm] = useState<Form | null>(null)
   const [confirm, setConfirm] = useState<Confirm | null>(null)
   const [expanded, setExpanded] = useState<string | null>(null)
   const [showDone, setShowDone] = useState(false)
   const [localError, setLocalError] = useState<string | null>(null)
   const today = todayKey()
+  const parsed = useMemo(() => parseQuickTask(title, new Date(), ignored), [title, ignored])
 
   const groups = groupTasks(tasks.items, today)
   const pendingCount = tasks.items.filter((t) => !t.done).length
   const todayCount = groups.filter((g) => g.key === 'today' || g.key === 'overdue').reduce((n, g) => n + g.tasks.length, 0)
+
+  
+  async function quickAdd() {
+    if (!parsed.title) return
+    const saved = await tasks.add({
+      id: newId(),
+      title: parsed.title,
+      priority: parsed.priority ?? 'MEDIUM',
+      estimatedMinutes: parsed.estimatedMinutes ?? null,
+      dueDate: parsed.dueDate ?? today,
+      done: false,
+      completedAt: null,
+      steps: parsed.steps.map((text) => ({ id: newId(), text, done: false })),
+    })
+    if (!saved) return
+    changeTitle('')
+    setExpanded(saved.id)
+  }
+
+  function changeTitle(text: string) {
+    setTitle(text)
+    if (!text.trim()) setIgnored(new Set())
+  }
 
   async function save(task: Task) {
     const isNew = form?.mode === 'new'
@@ -79,7 +104,6 @@ export function TasksScreen({ navigation }: Props) {
       expanded={expanded === task.id}
       assistantEnabled={assistant.enabled}
       onToggleExpand={() => setExpanded(expanded === task.id ? null : task.id)}
-      // Concluir pede confirmação; reabrir é direto (desfaz um engano).
       onToggleDone={() => (task.done ? void tasks.setDone(task, false) : setConfirm({ kind: 'done', task }))}
       onToggleStep={(stepId) => void tasks.toggleStep(task, stepId)}
       onAddStep={(text) => tasks.addStep(task, text)}
@@ -109,12 +133,31 @@ export function TasksScreen({ navigation }: Props) {
         )}
       </View>
 
-      <ArrowButton label="Nova tarefa" onPress={() => setForm({ mode: 'new' })} />
+      <View style={styles.addRow}>
+        <TextInput
+          value={title}
+          onChangeText={changeTitle}
+          placeholder="Ex.: estudar amanhã 30min !alta"
+          placeholderTextColor={colors.sand}
+          accessibilityLabel="Nova tarefa numa frase"
+          maxLength={400}
+          returnKeyType="done"
+          onSubmitEditing={() => void quickAdd()}
+          style={styles.addInput}
+        />
+        <PressableScale onPress={() => void quickAdd()} accessibilityRole="button" accessibilityLabel="Adicionar tarefa" style={styles.addButton}>
+          <Icon name="plus" color={colors.white} />
+        </PressableScale>
+      </View>
+      <QuickChips parsed={parsed} onUndo={(kind) => setIgnored(new Set([...ignored, kind]))} />
+      <Pressable onPress={() => setForm({ mode: 'new' })} accessibilityRole="button" hitSlop={8} style={styles.planLink}>
+        <Text style={styles.planLinkText}>Nova tarefa com detalhes (data, duração, microetapas)</Text>
+      </Pressable>
 
       {!tasks.loading && tasks.items.length === 0 && (
         <View style={styles.empty}>
           <Text style={formStyles.itemTitle}>Comece pela próxima coisa a fazer</Text>
-          <Text style={formStyles.muted}>Toque em “Nova tarefa”. Depois, abra a tarefa para dividir em passos pequenos (microetapas).</Text>
+          <Text style={formStyles.muted}>Escreva numa frase, como “ligar para a clínica amanhã 10min”. Depois, abra a tarefa para dividir em passos pequenos.</Text>
         </View>
       )}
 
@@ -168,6 +211,9 @@ export function TasksScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   summary: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing[4], gap: spacing[3] },
   summaryText: { flex: 1, fontFamily: fonts.body, fontSize: 15, color: colors.textSecondary },
+  addRow: { flexDirection: 'row', gap: spacing[2], alignItems: 'center' },
+  addInput: { flex: 1, minHeight: 52, borderWidth: 1.5, borderColor: colors.ink, borderRadius: radius.md, paddingHorizontal: spacing[4], fontFamily: fonts.body, fontSize: 17, color: colors.ink, backgroundColor: colors.bgSurface },
+  addButton: { width: 52, height: 52, borderRadius: radius.md, backgroundColor: colors.emberBright, alignItems: 'center', justifyContent: 'center' },
   planLink: { flexDirection: 'row', alignItems: 'center', gap: spacing[1], minHeight: 44 },
   planLinkText: { fontFamily: fonts.bodyBold, fontSize: 14, color: colors.ink, textDecorationLine: 'underline' },
   empty: { borderWidth: 1, borderStyle: 'dashed', borderColor: colors.sand, borderRadius: radius.lg, padding: spacing[4], gap: spacing[1], marginTop: spacing[5] },

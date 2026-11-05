@@ -15,7 +15,6 @@ import { colors, fonts, radius, spacing } from '../../styles/tokens'
 type Props = NativeStackScreenProps<RootStackParamList, 'CheckIn'>
 const LEVELS = [1, 2, 3, 4, 5] as const
 
-/** RF3: check-in diário + histórico em série temporal. Só mostra o que foi registrado. */
 export function CheckInScreen({ navigation }: Props) {
   const { items, upsert, error } = useCollection<CheckIn>(checkInsSource)
   const [justSaved, setJustSaved] = useState(false)

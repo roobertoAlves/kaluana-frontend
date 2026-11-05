@@ -10,6 +10,7 @@ import { ArrowButton } from '../../components/ui/ArrowButton'
 import { SocialRow } from '../../components/ui/SocialRow'
 import { useAuth } from '../../context/AuthContext'
 import { registerPrimary, ApiError } from '../../services/api'
+import { isPendingConfirmation } from '../../types'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PrimaryRegister'>
 
@@ -52,6 +53,11 @@ export function PrimaryRegisterScreen({ navigation }: Props) {
         email: form.email.trim(),
         password: form.password,
       })
+
+      if (isPendingConfirmation(auth)) {
+        navigation.reset({ index: 0, routes: [{ name: 'CheckEmail', params: { email: auth.user.email } }] })
+        return
+      }
       setSession(auth)
       navigation.reset({ index: 0, routes: [{ name: 'LoginSuccess' }] })
     } catch (error) {

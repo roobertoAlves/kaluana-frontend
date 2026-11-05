@@ -6,12 +6,10 @@ import { motion, useReducedMotion } from './useReducedMotion'
 
 interface FadeInProps {
   children: ReactNode
-  /** Posição na lista: cada item entra um pouco depois do anterior (até 6). */
   index?: number
   style?: StyleProp<ViewStyle>
 }
 
-/** Entrada suave (opacidade + 8 px de subida). Sem animação se o sistema pedir. */
 export function FadeIn({ children, index = 0, style }: FadeInProps) {
   const reduced = useReducedMotion()
   const [progress] = useState(() => new Animated.Value(reduced ? 1 : 0))

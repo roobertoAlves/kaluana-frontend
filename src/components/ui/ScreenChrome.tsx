@@ -9,15 +9,9 @@ interface ScreenChromeProps {
   contextTag: string
   step: string
   children: ReactNode
-  /** "sinal recebido" e outras telas de retorno usam fundo escuro. */
   dark?: boolean
 }
 
-/**
- * Porte de src/components/ui/ScreenChrome.tsx: as marcas "+" de canto,
- * as duas linhas de cabeçalho (FIELD NOTE / tag de contexto, número do
- * passo / SIGNAL·ACTIVE) e o selo da raposa no canto superior direito.
- */
 export function ScreenChrome({ fieldNote, contextTag, step, children, dark = false }: ScreenChromeProps) {
   const labelColor = dark ? colors.white : colors.ink
   const mutedColor = dark ? 'rgba(255,255,255,0.6)' : colors.textSecondary

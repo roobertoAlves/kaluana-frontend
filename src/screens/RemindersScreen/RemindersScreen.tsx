@@ -19,13 +19,8 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Reminders'>
 
 type Form = { mode: 'new'; preset?: string } | { mode: 'edit'; reminder: Reminder }
 
-/**
- * RF2: lembretes. O próximo aviso em destaque, a lista em ordem do que vem
- * primeiro (pausados à parte) e um formulário em folha com o relógio.
- */
 export function RemindersScreen({ navigation, route }: Props) {
   const { items, upsert, remove, loading, error: apiError } = useCollection<Reminder>(remindersSource)
-  // Atalho "Beber água" da Home: abre o formulário já com o nome.
   const [form, setForm] = useState<Form | null>(() => (route.params?.preset ? { mode: 'new', preset: route.params.preset } : null))
   const [deleting, setDeleting] = useState<Reminder | null>(null)
 
@@ -33,7 +28,6 @@ export function RemindersScreen({ navigation, route }: Props) {
     if (route.params?.preset) navigation.setParams({ preset: undefined })
   }, [route.params?.preset, navigation])
 
-  // Ao abrir, reagenda tudo (cobre reinício do aparelho e lembretes antigos).
   useEffect(() => {
     if (!loading) void rescheduleAll(items.filter((r) => r.enabled))
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -43,7 +37,6 @@ export function RemindersScreen({ navigation, route }: Props) {
   const next = active[0]
 
   async function apply(r: Reminder) {
-    // Agenda com o lembrete devolvido pela API: ao criar, o id passa a ser o do servidor.
     const saved = await upsert(r)
     if (!saved) return
     try {

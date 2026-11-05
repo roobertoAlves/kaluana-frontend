@@ -2,7 +2,6 @@ import type { LifeEvent } from '../types/domain'
 import type { CollectionSource } from '../hooks/useCollection'
 import { apiRequest } from './http'
 
-/** RF1 · /api/events. A API não edita eventos: só cria, lista e apaga. */
 export const eventsSource: CollectionSource<LifeEvent> = {
   name: 'events',
   remote: {
