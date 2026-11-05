@@ -3,6 +3,7 @@ import type {
   LoginPayload,
   RegisterPrimaryPayload,
   RegisterResponsiblePayload,
+  RegisterResponse,
   ValidateCodePayload,
   ValidateCodeResponse,
   GenerateCodeResponse,
@@ -21,7 +22,7 @@ function login(payload: LoginPayload) {
 }
 
 function registerPrimary(payload: RegisterPrimaryPayload) {
-  return apiRequest<AuthResponse>('/api/auth/register/primary', { method: 'POST', body: payload })
+  return apiRequest<RegisterResponse>('/api/auth/register/primary', { method: 'POST', body: payload })
 }
 
 function validateCode(payload: ValidateCodePayload) {
@@ -29,7 +30,7 @@ function validateCode(payload: ValidateCodePayload) {
 }
 
 function registerResponsible(payload: RegisterResponsiblePayload) {
-  return apiRequest<AuthResponse>('/api/auth/register/responsible', { method: 'POST', body: payload })
+  return apiRequest<RegisterResponse>('/api/auth/register/responsible', { method: 'POST', body: payload })
 }
 
 function refreshSession(refreshToken: string) {
@@ -40,8 +41,13 @@ function logout(refreshToken: string) {
   return apiRequest<void>('/api/auth/logout', { method: 'POST', body: { refreshToken }, retryOn401: false })
 }
 
+/** Novo link de confirmação. A API responde 202 sempre (não diz se o e-mail existe). */
+function resendConfirmation(email: string) {
+  return apiRequest<void>('/api/auth/resend-confirmation', { method: 'POST', body: { email } })
+}
+
 function generateCode(token: string) {
   return apiRequest<GenerateCodeResponse>('/api/pairing/generate-code', { method: 'POST', token })
 }
 
-export { login, registerPrimary, registerResponsible, validateCode, generateCode, refreshSession, logout }
+export { login, registerPrimary, registerResponsible, validateCode, generateCode, refreshSession, logout, resendConfirmation }

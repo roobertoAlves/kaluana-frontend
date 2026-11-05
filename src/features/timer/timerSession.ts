@@ -6,7 +6,7 @@
  */
 export type TimerStatus = 'RUNNING' | 'PAUSED' | 'DONE' | 'CANCELED'
 
-export type TimerSound = 'NONE' | 'WHITE' | 'PINK' | 'BROWN'
+export type TimerSound = 'NONE' | 'WHITE' | 'PINK' | 'BROWN' | 'RAIN' | 'WAVES' | 'FIRE' | 'FOREST'
 
 export interface TimerSession {
   id: string

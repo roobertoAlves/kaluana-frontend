@@ -11,6 +11,8 @@ import { useAuth } from '../../context/AuthContext'
 import { useTimer } from '../../context/TimerContext'
 import { useCollection } from '../../hooks/useCollection'
 import { useProfile } from '../../hooks/useProfile'
+import { useLastDayReview } from '../../hooks/useLastDayReview'
+import { shouldOfferReview } from '../../features/review/dayReview'
 import { remindersSource } from '../../services/remindersApi'
 import { checkInsSource } from '../../services/checkInsApi'
 import { todayKey } from '../../services/storage'
@@ -28,6 +30,7 @@ const SHORTCUTS: Shortcut[] = [
   { label: 'Plano do dia', icon: 'calendar', go: (n) => n.navigate('DayPlan') },
   { label: 'Check-in', icon: 'check', go: (n) => n.navigate('CheckIn') },
   { label: 'Temporizador', icon: 'timer', go: (n) => n.navigate('TimerPlan') },
+  { label: 'Sons', icon: 'sound', go: (n) => n.navigate('Sounds') },
   { label: 'Lembretes', icon: 'bell', go: (n) => n.navigate('Reminders') },
   { label: 'Eventos', icon: 'note', go: (n) => n.navigate('EventLog') },
   { label: 'Local', icon: 'pin' }, // "em breve": definição pendente (TCC exclui geolocalização em tempo real)
@@ -60,6 +63,8 @@ export function HomeScreen({ navigation }: Props) {
   const { session, now } = useTimer()
   const { items: reminders } = useCollection<Reminder>(remindersSource)
   const { items: checkins } = useCollection<CheckIn>(checkInsSource)
+  const review = useLastDayReview()
+  const offerReview = review.loaded && shouldOfferReview(new Date(now), review.lastDay)
 
   const firstName = profile.nickname || profile.displayName.split(' ')[0] || user?.name?.split(' ')[0] || ''
   const next = nextReminder(reminders)
@@ -120,6 +125,18 @@ export function HomeScreen({ navigation }: Props) {
                     </Text>
                   </View>
                   {activeSession.status !== 'DONE' && <Text style={styles.miniTime}>{formatClock(remainingMs(activeSession, now))}</Text>}
+                </Pressable>
+              )}
+
+              {/* RF17 · encerrar o dia (a partir das 18h, uma vez por dia) */}
+              {offerReview && (
+                <Pressable onPress={() => navigation.navigate('DayReview')} accessibilityRole="button" style={[styles.card, styles.review]}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.cardLabel}>FIM DO DIA</Text>
+                    <Text style={styles.cardTitle}>Encerrar o dia</Text>
+                    <Text style={styles.muted}>Revise o que ficou e prepare amanhã. Leva 1 minuto.</Text>
+                  </View>
+                  <Icon name="chevron" size={20} color={colors.sand} />
                 </Pressable>
               )}
 
@@ -198,6 +215,7 @@ const styles = StyleSheet.create({
   card: { backgroundColor: colors.bgSurface, padding: spacing[4], borderRadius: radius.lg, borderLeftWidth: 3, borderLeftColor: colors.emberBright, marginBottom: spacing[4] },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing[3] },
   reminder: { flexDirection: 'row', alignItems: 'center', gap: spacing[3] },
+  review: { flexDirection: 'row', alignItems: 'center', gap: spacing[3], borderLeftColor: colors.sageBright },
   reminderIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.emberBright, alignItems: 'center', justifyContent: 'center' },
   cardLabel: { fontFamily: fonts.displayMedium, fontSize: 10, letterSpacing: 1.2, color: colors.emberBright, marginBottom: 2 },
   cardTitle: { fontFamily: fonts.display, fontSize: 17, color: colors.ink, marginBottom: 2 },

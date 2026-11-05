@@ -4,6 +4,7 @@ export type IconName =
   | 'check' | 'timer' | 'bell' | 'note' | 'compass' | 'pin' | 'drop' | 'pencil' | 'mail'
   | 'user' | 'globe' | 'chevron' | 'gear' | 'shield' | 'people' | 'doc' | 'palette'
   | 'list' | 'calendar' | 'sound' | 'plus' | 'close' | 'sparkle'
+  | 'wave' | 'flame' | 'leaf' | 'moon'
 
 /** Ícones de linha simples (24x24). Troque pelos do Figma quando exportados. */
 export function Icon({ name, size = 24, color = '#1F3556' }: { name: IconName; size?: number; color?: string }) {
@@ -32,6 +33,10 @@ export function Icon({ name, size = 24, color = '#1F3556' }: { name: IconName; s
       {name === 'close' && <Path d="M6 6l12 12M18 6L6 18" {...p} />}
       {name === 'sparkle' && <Path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.7 1.8 1.8.7-1.8.7L19 21l-.7-1.8-1.8-.7 1.8-.7z" {...p} />}
       {name === 'palette' && (<><Circle cx={12} cy={12} r={9} {...p} /><Circle cx={8.5} cy={10} r={1} fill={color} /><Circle cx={12} cy={7.5} r={1} fill={color} /><Circle cx={15.5} cy={10} r={1} fill={color} /></>)}
+      {name === 'wave' && <Path d="M2 12c2.5-3 5-3 7.5 0s5 3 7.5 0 3.5-2 5-1M2 17c2.5-3 5-3 7.5 0s5 3 7.5 0 3.5-2 5-1" {...p} />}
+      {name === 'flame' && <Path d="M12 3c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-2.5 1.5-4 2.5-5 .5 2 1.5 3 2.5 3 0-3-1-5 0-8z" {...p} />}
+      {name === 'leaf' && <Path d="M5 19c0-8 5-13 14-14-1 9-6 14-14 14zM5 19l7-7" {...p} />}
+      {name === 'moon' && <Path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" {...p} />}
     </Svg>
   )
 }

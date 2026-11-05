@@ -27,7 +27,7 @@ export function TimerPlanScreen({ navigation, route }: Props) {
 
   async function next() {
     if (water) await ensureNotificationSetup().catch(() => false)
-    navigation.navigate('TimerSound', { plan: { task, minutes, steps, water, taskId: preset?.taskId ?? null } })
+    navigation.navigate('TimerSound', { plan: { task, minutes, steps, water, taskId: preset?.taskId ?? null, sound: preset?.sound } })
   }
 
   return (

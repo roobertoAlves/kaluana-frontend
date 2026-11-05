@@ -26,6 +26,7 @@ import { SplashIFScreen } from './src/screens/SplashIFScreen/SplashIFScreen'
 import { SplashScreen } from './src/screens/SplashScreen/SplashScreen'
 import { ProfileSelectionScreen } from './src/screens/ProfileSelectionScreen/ProfileSelectionScreen'
 import { LoginScreen } from './src/screens/LoginScreen/LoginScreen'
+import { CheckEmailScreen } from './src/screens/CheckEmailScreen/CheckEmailScreen'
 import { PrimaryRegisterScreen } from './src/screens/PrimaryRegisterScreen/PrimaryRegisterScreen'
 import { ResponsibleRegisterScreen } from './src/screens/ResponsibleRegisterScreen/ResponsibleRegisterScreen'
 import { LoginSuccessScreen } from './src/screens/LoginSuccessScreen/LoginSuccessScreen'
@@ -44,6 +45,10 @@ import { TimerPlanScreen } from './src/screens/TimerPlanScreen/TimerPlanScreen'
 import { TimerScreen } from './src/screens/TimerScreen/TimerScreen'
 import { TimerSoundScreen } from './src/screens/TimerSoundScreen/TimerSoundScreen'
 import { TimerDoneScreen } from './src/screens/TimerDoneScreen/TimerDoneScreen'
+import { SoundsScreen } from './src/screens/SoundsScreen/SoundsScreen'
+import { RelaxScreen } from './src/screens/RelaxScreen/RelaxScreen'
+import { SleepScreen } from './src/screens/SleepScreen/SleepScreen'
+import { DayReviewScreen } from './src/screens/DayReviewScreen/DayReviewScreen'
 import { ReminderAlertScreen } from './src/screens/ReminderAlertScreen/ReminderAlertScreen'
 import { TimerProvider } from './src/context/TimerContext'
 import { getInitialTap, listenNotificationTaps } from './src/services/notifications'
@@ -123,6 +128,7 @@ export default function App() {
               <Stack.Screen name="Splash" component={SplashScreen} />
               <Stack.Screen name="ProfileSelection" component={ProfileSelectionScreen} />
               <Stack.Screen name="Login" component={LoginScreen} />
+              <Stack.Screen name="CheckEmail" component={CheckEmailScreen} />
               <Stack.Screen name="PrimaryRegister" component={PrimaryRegisterScreen} />
               <Stack.Screen name="ResponsibleRegister" component={ResponsibleRegisterScreen} />
               <Stack.Screen name="LoginSuccess" component={LoginSuccessScreen} />
@@ -141,6 +147,10 @@ export default function App() {
               <Stack.Screen name="TimerSound" component={TimerSoundScreen} />
               <Stack.Screen name="Timer" component={TimerScreen} />
               <Stack.Screen name="TimerDone" component={TimerDoneScreen} />
+              <Stack.Screen name="Sounds" component={SoundsScreen} />
+              <Stack.Screen name="Relax" component={RelaxScreen} />
+              <Stack.Screen name="Sleep" component={SleepScreen} />
+              <Stack.Screen name="DayReview" component={DayReviewScreen} />
               <Stack.Screen name="ReminderAlert" component={ReminderAlertScreen} />
             </Stack.Navigator>
           </NavigationContainer>

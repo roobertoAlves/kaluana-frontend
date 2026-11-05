@@ -34,6 +34,11 @@ export function LoginScreen({ navigation }: Props) {
       setSession(auth)
       navigation.reset({ index: 0, routes: [{ name: 'LoginSuccess' }] })
     } catch (error) {
+      // 403 com a senha certa = conta ainda não confirmada: leva para a tela do e-mail.
+      if (error instanceof ApiError && error.status === 403) {
+        navigation.navigate('CheckEmail', { email: email.trim() })
+        return
+      }
       setFormError(error instanceof ApiError ? error.message : 'Erro inesperado. Tente novamente.')
     } finally {
       setSubmitting(false)
