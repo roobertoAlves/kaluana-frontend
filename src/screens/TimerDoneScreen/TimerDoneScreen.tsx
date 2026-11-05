@@ -9,7 +9,6 @@ import { spacing } from '../../styles/tokens'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TimerDone'>
 
-/** T3 · sessão concluída. Sem pontuação, sequência ou julgamento. */
 export function TimerDoneScreen({ navigation }: Props) {
   const { session, clear } = useTimer()
   const minutes = session ? Math.round(session.totalMs / 60_000) : 0

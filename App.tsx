@@ -49,21 +49,17 @@ import { TimerProvider } from './src/context/TimerContext'
 import { getInitialTap, listenNotificationTaps } from './src/services/notifications'
 import type { NotificationTap } from './src/services/notifications'
 
-SplashScreenModule.preventAutoHideAsync().catch(() => {
-  // Se isso falhar (chamado duas vezes, por exemplo), não é fatal.
-})
+SplashScreenModule.preventAutoHideAsync().catch(() => {})
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
 const navRef = createNavigationContainerRef<RootStackParamList>()
 
-/** Toque em notificação: lembrete abre a tela L2; fim de sessão abre o temporizador. */
 function openFromTap(t: NotificationTap) {
   if (!navRef.isReady()) return
   if (t.kind === 'session') navRef.navigate('TimerDone')
   else navRef.navigate('ReminderAlert', { title: t.title, reminderId: t.reminderId })
 }
 
-/** Renovação da sessão falhou (ex.: 30 dias sem uso): volta para o login. */
 function goToLogin() {
   if (navRef.isReady()) navRef.reset({ index: 0, routes: [{ name: 'Login' }] })
 }
@@ -80,8 +76,6 @@ export default function App() {
   })
 
   useEffect(() => {
-    // A splash do IF só aparece na primeira abertura: o flag precisa estar
-    // lido antes de o navegador montar a rota inicial.
     Promise.all([initRuntimeConfig(), hasSeenIntro().then(setIntroSeen)]).finally(() => setConfigReady(true))
   }, [])
 
@@ -110,7 +104,6 @@ export default function App() {
           <NavigationContainer
             ref={navRef}
             onReady={() => {
-              // App aberto a partir de uma notificação com o app fechado.
               void getInitialTap().then((t) => t && openFromTap(t))
             }}
           >

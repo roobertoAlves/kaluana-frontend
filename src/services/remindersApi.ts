@@ -2,7 +2,6 @@ import type { Reminder } from '../types/domain'
 import type { CollectionSource } from '../hooks/useCollection'
 import { apiRequest } from './http'
 
-/** RF2 · /api/reminders. O disparo continua agendado no aparelho (RNF2). */
 const toBody = (r: Reminder) => ({
   title: r.title,
   time: r.time,

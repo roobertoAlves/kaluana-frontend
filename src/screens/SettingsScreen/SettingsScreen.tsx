@@ -37,7 +37,6 @@ interface RowDef {
   onPress?: () => void
 }
 
-/** Configurações em grupos de linhas (ícone, valor à direita e seta). */
 export function SettingsScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets()
   const { clearSession, user, accessToken } = useAuth()
@@ -163,7 +162,6 @@ export function SettingsScreen({ navigation }: Props) {
   )
 }
 
-/** RF6: quem já está vinculado. O principal revoga o acesso; o responsável sai do vínculo. */
 function LinkedPeople({ token, isPrimary }: { token: string; isPrimary: boolean }) {
   const [links, setLinks] = useState<LinkedUser[]>([])
   const [error, setError] = useState<string | null>(null)

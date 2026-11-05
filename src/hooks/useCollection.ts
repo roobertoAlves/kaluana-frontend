@@ -4,11 +4,6 @@ import { useAuth } from '../context/AuthContext'
 import { errorMessage } from '../services/http'
 import { readJson, writeJson } from '../services/storage'
 
-/**
- * Como uma coleção conversa com a API. Cada feature declara o seu
- * (ex.: eventsApi.eventsSource). `update`/`remove` são opcionais para
- * recursos que a API só cria (ou cria e atualiza pela mesma rota).
- */
 export interface CollectionRemote<T> {
   list: (token: string) => Promise<T[]>
   create: (token: string, item: T) => Promise<T>
@@ -21,12 +16,6 @@ export interface CollectionSource<T> {
   remote?: CollectionRemote<T>
 }
 
-/**
- * Lista do usuário, recarregada sempre que a tela ganha foco.
- * Logado: a API é a fonte da verdade e o AsyncStorage vira cache (a lista
- * aparece mesmo sem rede). Sem login: só armazenamento local, como antes.
- * Mutações devolvem o item salvo (com o id do servidor) ou null se falharam.
- */
 export function useCollection<T extends { id: string }>(source: string | CollectionSource<T>) {
   const { name, remote } = typeof source === 'string' ? { name: source, remote: undefined } : source
   const { user, accessToken } = useAuth()
@@ -68,7 +57,6 @@ export function useCollection<T extends { id: string }>(source: string | Collect
     }, [reload]),
   )
 
-  /** Executa a chamada remota (se houver) e só então atualiza a lista. */
   const run = useCallback(async <R,>(call: (() => Promise<R>) | null, fallback: R, apply: (result: R) => T[]): Promise<R | null> => {
     try {
       const result = call ? await call() : fallback
@@ -100,10 +88,6 @@ export function useCollection<T extends { id: string }>(source: string | Collect
     return ok !== null
   }
 
-  /**
-   * Mutação própria da feature (ex.: microetapas): com conta, chama a API e usa
-   * o item devolvido; sem conta, aplica {@code local}. Substitui o item pelo id.
-   */
   const mutate = (remoteCall: (token: string) => Promise<T>, local: T) =>
     run(api ? () => remoteCall(api.token) : null, local, (saved) => ref.current.map((x) => (x.id === saved.id ? saved : x)))
 

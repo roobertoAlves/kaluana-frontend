@@ -9,11 +9,6 @@ import type {
 } from '../types'
 import { apiRequest } from './http'
 
-/**
- * Rotas de autenticação e emparelhamento. O fetch, os headers e a tradução
- * de erros ficam em http.ts, compartilhado com os módulos de cada feature.
- */
-
 export { ApiError } from './http'
 
 function login(payload: LoginPayload) {

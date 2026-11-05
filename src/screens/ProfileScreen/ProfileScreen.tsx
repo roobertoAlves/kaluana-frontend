@@ -15,7 +15,6 @@ import { colors, fonts, radius, spacing } from '../../styles/tokens'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>
 
-/** 3.1 · perfil: avatar, informações, funcionalidades e grupo Conta. */
 export function ProfileScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets()
   const { user } = useAuth()

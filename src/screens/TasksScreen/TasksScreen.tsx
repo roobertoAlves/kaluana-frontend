@@ -24,10 +24,6 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Tasks'>
 type Form = { mode: 'new' } | { mode: 'edit'; task: Task }
 type Confirm = { kind: 'done' | 'delete'; task: Task }
 
-/**
- * RF5: "o que eu preciso fazer?". Uma ação principal (Nova tarefa), a lista
- * agrupada por quando fazer, e confirmação antes de concluir ou apagar.
- */
 export function TasksScreen({ navigation }: Props) {
   const { accessToken } = useAuth()
   const tasks = useTasks()
@@ -79,7 +75,6 @@ export function TasksScreen({ navigation }: Props) {
       expanded={expanded === task.id}
       assistantEnabled={assistant.enabled}
       onToggleExpand={() => setExpanded(expanded === task.id ? null : task.id)}
-      // Concluir pede confirmação; reabrir é direto (desfaz um engano).
       onToggleDone={() => (task.done ? void tasks.setDone(task, false) : setConfirm({ kind: 'done', task }))}
       onToggleStep={(stepId) => void tasks.toggleStep(task, stepId)}
       onAddStep={(text) => tasks.addStep(task, text)}

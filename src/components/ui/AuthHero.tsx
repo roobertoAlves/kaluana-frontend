@@ -9,7 +9,6 @@ interface AuthHeroProps {
   marginBottom: number
 }
 
-/** Título grande em branco + selo da raposa no canto, das telas sobre a faixa azul. */
 export function AuthHero({ title, maxTitleWidth, blend = false, marginBottom }: AuthHeroProps) {
   return (
     <View style={[styles.hero, { marginBottom }]}>
@@ -26,7 +25,6 @@ export function AuthHero({ title, maxTitleWidth, blend = false, marginBottom }: 
   )
 }
 
-/** Subtítulo estreito (max-width 160px) que acompanha o hero. */
 export function AuthSubtitle({ children }: { children: React.ReactNode }) {
   return <Text style={styles.subtitle}>{children}</Text>
 }

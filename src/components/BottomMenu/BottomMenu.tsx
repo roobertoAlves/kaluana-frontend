@@ -13,7 +13,6 @@ const MENU_ITEMS: { label: string; icon: string; route: MenuRoute }[] = [
   { label: 'Config', icon: '⚙️', route: 'Settings' },
 ]
 
-/** Menu inferior do projeto base: três abas com emoji, azul na aba ativa. */
 export function BottomMenu() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
   const route = useRoute()

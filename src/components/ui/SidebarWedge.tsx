@@ -5,12 +5,6 @@ import { colors } from '../../styles/tokens'
 const TOP_WIDTH = 300
 const BOTTOM_WIDTH = 120
 
-/**
- * Faixa azul lateral das telas de acesso/cadastro:
- * `clip-path: polygon(0 0, 100% 0, 120px 100%, 0 100%)` com 300px de largura.
- * O viewBox fixa as medidas horizontais em pixels reais e deixa só a altura
- * esticar, então a inclinação acompanha a altura da tela.
- */
 export function SidebarWedge() {
   return (
     <Svg

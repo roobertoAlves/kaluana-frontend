@@ -1,10 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-/**
- * Persistência local por usuário (funciona offline). Chave:
- * kaluana:<userId>:<nome>. Quando o back-end de sincronização existir, esta
- * camada vira o "outbox" local; as telas não precisam mudar.
- */
 const key = (userId: string, name: string) => `kaluana:${userId}:${name}`
 
 export async function readJson<T>(userId: string, name: string, fallback: T): Promise<T> {
@@ -19,9 +14,7 @@ export async function readJson<T>(userId: string, name: string, fallback: T): Pr
 export async function writeJson<T>(userId: string, name: string, value: T): Promise<void> {
   try {
     await AsyncStorage.setItem(key(userId, name), JSON.stringify(value))
-  } catch {
-    // Sem storage: o dado fica só em memória nesta sessão.
-  }
+  } catch {}
 }
 
 export function newId(): string {

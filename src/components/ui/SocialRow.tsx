@@ -2,10 +2,6 @@ import { Pressable, StyleSheet, View } from 'react-native'
 import Svg, { Path } from 'react-native-svg'
 import { colors } from '../../styles/tokens'
 
-/**
- * Botões redondos de Google/GitHub. Sem ação ligada, como no base: o
- * endpoint social do backend ainda não faz verificação de token.
- */
 export function SocialRow({ verb }: { verb: 'Entrar' | 'Registrar' }) {
   return (
     <View style={styles.row}>

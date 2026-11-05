@@ -5,7 +5,6 @@ export type IconName =
   | 'user' | 'globe' | 'chevron' | 'gear' | 'shield' | 'people' | 'doc' | 'palette'
   | 'list' | 'calendar' | 'sound' | 'plus' | 'close' | 'sparkle'
 
-/** Ícones de linha simples (24x24). Troque pelos do Figma quando exportados. */
 export function Icon({ name, size = 24, color = '#1F3556' }: { name: IconName; size?: number; color?: string }) {
   const p = { stroke: color, strokeWidth: 1.8, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, fill: 'none' }
   return (

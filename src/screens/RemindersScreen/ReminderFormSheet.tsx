@@ -21,24 +21,17 @@ const INSIST: { value: ReminderInsistence; label: string; hint: string }[] = [
   { value: 'HIGH', label: 'Alta', hint: 'Repete 4 vezes se você não reagir.' },
 ]
 
-/** Próxima hora cheia: ponto de partida do relógio num lembrete novo. */
 function nextHour(): string {
   return formatTime((new Date().getHours() + 1) % 24, 0)
 }
 
 interface Props {
-  /** Lembrete a editar; sem ele, cria um novo. */
   reminder?: Reminder | null
-  /** Nome sugerido (atalho "Beber água" da Home). */
   presetTitle?: string
   onCancel: () => void
   onSave: (reminder: Reminder) => void
 }
 
-/**
- * Formulário de lembrete numa folha (RF2): nome com atalhos, horário pelo
- * relógio, antecedência, frequência e insistência, com prévia do próximo aviso.
- */
 export function ReminderFormSheet({ reminder, presetTitle, onCancel, onSave }: Props) {
   const [title, setTitle] = useState(reminder?.title ?? presetTitle ?? '')
   const [time, setTime] = useState(reminder?.time ?? nextHour())

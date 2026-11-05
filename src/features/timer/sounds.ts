@@ -1,15 +1,9 @@
 import type { TimerSound } from './timerSession.ts'
 
-/**
- * Catálogo dos sons da sessão de foco (RF9): nome, descrição curta e as cores
- * da "capa" desenhada na tela do player. Os arquivos são gerados pela equipe
- * (scripts/generate-noise.mjs) e vêm dentro do app.
- */
 export interface SoundInfo {
   value: TimerSound
   label: string
   description: string
-  /** Cores da capa: fundo e destaque. */
   art: [string, string]
   pattern: 'none' | 'waves' | 'rings' | 'dots'
 }

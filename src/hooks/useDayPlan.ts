@@ -13,18 +13,11 @@ const CHECK_EVERY_MS = 60_000
 const OFFLINE_NOTE = 'Sem conexão: plano montado no aparelho.'
 
 interface PlanPrefs {
-  /** RF14: reorganizar sozinho (padrão) ou só avisar e perguntar. */
   autoReplan: boolean
 }
 
 const isOffline = (e: unknown) => e instanceof ApiError && e.status === 0
 
-/**
- * RF10/RF14: o plano salvo do dia. Ao abrir a tela, ao voltar para o app e a
- * cada minuto, confere se o plano ainda corresponde ao dia; se não, replaneja
- * (ou só avisa, se o usuário desligou a reorganização automática). Com conta,
- * a API monta e replaneja; sem conta ou sem rede, as mesmas regras rodam aqui.
- */
 export function useDayPlan(tasks: { items: Task[]; loading: boolean }, energy: number | null, day: string = todayKey()) {
   const { user, accessToken } = useAuth()
   const userId = user?.id ?? 'anon'
@@ -36,9 +29,7 @@ export function useDayPlan(tasks: { items: Task[]; loading: boolean }, energy: n
   const [changes, setChanges] = useState<PlanChange[]>([])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  // Relógio da tela: muda a cada minuto e quando o app volta para o primeiro plano.
   const [minute, setMinute] = useState(clock)
-  // Evita replanejar duas vezes no mesmo minuto (ex.: cache de tarefas ainda antigo).
   const [lastReplan, setLastReplan] = useState<string | null>(null)
 
   const keep = useCallback(
@@ -59,16 +50,13 @@ export function useDayPlan(tasks: { items: Task[]; loading: boolean }, energy: n
       try {
         const saved = await fetchSavedPlan(accessToken, day)
         if (alive) await keep(saved ?? cached)
-      } catch {
-        // Sem rede: fica o plano do cache.
-      }
+      } catch {}
     })()
     return () => {
       alive = false
     }
   }, [userId, accessToken, day, cacheName, keep])
 
-  /** Monta o plano de {@code day} entre {@code start} e {@code end} ("HH:MM", hora local). */
   async function build(start: string, end: string, assistant: boolean) {
     if (start >= end) {
       setError('O horário de início precisa ser antes do fim.')
@@ -97,7 +85,6 @@ export function useDayPlan(tasks: { items: Task[]; loading: boolean }, energy: n
     try {
       next = accessToken ? await replanDay(accessToken, today, now) : replanLocally(plan, tasks.items, energy, now)
     } catch (e) {
-      // Sem rede (ou plano só no aparelho): as mesmas regras rodam aqui.
       if (!isOffline(e) && !(e instanceof ApiError && e.status === 404)) {
         setError(errorMessage(e))
         setBusy(false)
@@ -117,7 +104,6 @@ export function useDayPlan(tasks: { items: Task[]; loading: boolean }, energy: n
     plan !== null && plan.date === today && !tasks.loading && prefs.loaded && lastReplan !== minute && needsReplan(plan, tasks.items, minute)
   const autoReplan = prefs.value.autoReplan
 
-  // Reorganiza sozinho quando o plano fica desatualizado (fora do corpo do efeito, como um evento).
   useEffect(() => {
     if (!outdated || !autoReplan || busy) return
     const id = setTimeout(() => void replan(), 0)
@@ -137,9 +123,7 @@ export function useDayPlan(tasks: { items: Task[]; loading: boolean }, energy: n
   return {
     plan,
     changes,
-    /** Desatualizado e com a reorganização automática desligada: só avisar. */
     stale: outdated && !autoReplan,
-    /** Hora atual ("HH:MM"), atualizada a cada minuto. */
     now: minute,
     busy,
     error,

@@ -10,13 +10,10 @@ import { CornerMarks } from './CornerMarks'
 import { ErrorToast } from '../ErrorToast'
 import { colors, maxWidthScreen } from '../../styles/tokens'
 
-/** Margem do topo: o primeiro elemento ("← VOLTAR") começa logo abaixo da barra de status. */
 const TOP_MARGIN = 28
 
 interface SidebarScreenProps {
-  /** Texto vertical no canto inferior esquerdo (ex.: "ACESSO"). */
   label: string
-  /** Espaço do topo até o conteúdo (72 no cadastro, 100 nas demais). */
   paddingTop: number
   paddingBottom: number
   toastMessage?: string | null
@@ -24,10 +21,6 @@ interface SidebarScreenProps {
   children: ReactNode
 }
 
-/**
- * Casca das telas Login, Cadastro e Responsável: fundo pontilhado, faixa azul
- * inclinada, rótulo vertical e marcas "+" nos cantos direitos.
- */
 export function SidebarScreen({
   label,
   paddingTop,
@@ -41,7 +34,6 @@ export function SidebarScreen({
 
   return (
     <KeyboardAvoidingView style={styles.root} behavior="padding">
-      {/* O relógio da barra de status cai sobre a faixa azul. */}
       {isFocused && <StatusBar style="light" />}
       <ScrollView bounces={false} overScrollMode="never"
         contentContainerStyle={styles.scrollContent}
