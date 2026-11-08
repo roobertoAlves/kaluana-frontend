@@ -74,6 +74,7 @@ export function SettingsScreen({ navigation }: Props) {
     { icon: 'bell', label: 'Lembretes', onPress: () => navigation.navigate('Reminders') },
     { icon: 'people', label: 'Contatos de confiança', onPress: () => navigation.navigate('Contacts') },
     { icon: 'doc', label: 'Relatório', onPress: () => navigation.navigate('Report') },
+    ...(isPrimary ? [{ icon: 'shield' as const, label: 'Quem viu meus dados', onPress: () => navigation.navigate('AccessLog') }] : []),
   ]
   const prefs: RowDef[] = [
     { icon: 'globe', label: 'Idioma', value: 'Português' },

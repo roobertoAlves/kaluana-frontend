@@ -38,6 +38,7 @@ import { RemindersScreen } from './src/screens/RemindersScreen/RemindersScreen'
 import { CheckInScreen } from './src/screens/CheckInScreen/CheckInScreen'
 import { ContactsScreen } from './src/screens/ContactsScreen/ContactsScreen'
 import { ReportScreen } from './src/screens/ReportScreen/ReportScreen'
+import { AccessLogScreen } from './src/screens/AccessLogScreen/AccessLogScreen'
 import { TasksScreen } from './src/screens/TasksScreen/TasksScreen'
 import { DayPlanScreen } from './src/screens/DayPlanScreen/DayPlanScreen'
 import { EditProfileScreen } from './src/screens/EditProfileScreen/EditProfileScreen'
@@ -47,6 +48,7 @@ import { TimerSoundScreen } from './src/screens/TimerSoundScreen/TimerSoundScree
 import { TimerDoneScreen } from './src/screens/TimerDoneScreen/TimerDoneScreen'
 import { SoundsScreen } from './src/screens/SoundsScreen/SoundsScreen'
 import { RelaxScreen } from './src/screens/RelaxScreen/RelaxScreen'
+import { GuideScreen } from './src/screens/GuideScreen/GuideScreen'
 import { SleepScreen } from './src/screens/SleepScreen/SleepScreen'
 import { DayReviewScreen } from './src/screens/DayReviewScreen/DayReviewScreen'
 import { ReminderAlertScreen } from './src/screens/ReminderAlertScreen/ReminderAlertScreen'
@@ -133,6 +135,7 @@ export default function App() {
               <Stack.Screen name="CheckIn" component={CheckInScreen} />
               <Stack.Screen name="Contacts" component={ContactsScreen} />
               <Stack.Screen name="Report" component={ReportScreen} />
+              <Stack.Screen name="AccessLog" component={AccessLogScreen} />
               <Stack.Screen name="Tasks" component={TasksScreen} />
               <Stack.Screen name="DayPlan" component={DayPlanScreen} />
               <Stack.Screen name="EditProfile" component={EditProfileScreen} />
@@ -142,6 +145,7 @@ export default function App() {
               <Stack.Screen name="TimerDone" component={TimerDoneScreen} />
               <Stack.Screen name="Sounds" component={SoundsScreen} />
               <Stack.Screen name="Relax" component={RelaxScreen} />
+              <Stack.Screen name="Guide" component={GuideScreen} />
               <Stack.Screen name="Sleep" component={SleepScreen} />
               <Stack.Screen name="DayReview" component={DayReviewScreen} />
               <Stack.Screen name="ReminderAlert" component={ReminderAlertScreen} />

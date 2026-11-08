@@ -23,17 +23,17 @@ import { colors, fonts, radius, spacing } from '../../styles/tokens'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>
 
-type Shortcut = { label: string; icon: IconName; go?: (n: Props['navigation']) => void }
+type Shortcut = { label: string; icon: IconName; go: (n: Props['navigation']) => void }
 
 const SHORTCUTS: Shortcut[] = [
   { label: 'Tarefas', icon: 'list', go: (n) => n.navigate('Tasks') },
   { label: 'Plano do dia', icon: 'calendar', go: (n) => n.navigate('DayPlan') },
   { label: 'Check-in', icon: 'check', go: (n) => n.navigate('CheckIn') },
+  { label: 'Guia', icon: 'compass', go: (n) => n.navigate('Guide') },
   { label: 'Temporizador', icon: 'timer', go: (n) => n.navigate('TimerPlan') },
   { label: 'Sons', icon: 'sound', go: (n) => n.navigate('Sounds') },
   { label: 'Lembretes', icon: 'bell', go: (n) => n.navigate('Reminders') },
   { label: 'Eventos', icon: 'note', go: (n) => n.navigate('EventLog') },
-  { label: 'Local', icon: 'pin' },
 ]
 
 const SCENARIOS: { label: string; hint: string; go: (n: Props['navigation']) => void }[] = [
@@ -137,26 +137,14 @@ export function HomeScreen({ navigation }: Props) {
               )}
 
               <ScrollView bounces={false} overScrollMode="never" horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carousel}>
-                {SHORTCUTS.map((s) => {
-                  const soon = !s.go
-                  return (
-                    <Pressable
-                      key={s.label}
-                      disabled={soon}
-                      onPress={() => s.go?.(navigation)}
-                      accessibilityRole="button"
-                      accessibilityLabel={soon ? `${s.label}, em breve` : s.label}
-                      accessibilityState={{ disabled: soon }}
-                      style={styles.shortcut}
-                    >
-                      <View style={[styles.circle, soon && { opacity: 0.45 }]}>
-                        <Icon name={s.icon} color={colors.ink} />
-                      </View>
-                      <Text style={styles.shortcutLabel}>{s.label}</Text>
-                      {soon && <Text style={styles.soon}>em breve</Text>}
-                    </Pressable>
-                  )
-                })}
+                {SHORTCUTS.map((s) => (
+                  <Pressable key={s.label} onPress={() => s.go(navigation)} accessibilityRole="button" accessibilityLabel={s.label} style={styles.shortcut}>
+                    <View style={styles.circle}>
+                      <Icon name={s.icon} color={colors.ink} />
+                    </View>
+                    <Text style={styles.shortcutLabel}>{s.label}</Text>
+                  </Pressable>
+                ))}
               </ScrollView>
 
               <Text style={styles.section}>CENÁRIOS RÁPIDOS</Text>
@@ -220,7 +208,6 @@ const styles = StyleSheet.create({
   shortcut: { alignItems: 'center', width: 76, minHeight: 96 },
   circle: { width: 64, height: 64, borderRadius: 32, backgroundColor: colors.bgSurface, borderWidth: 1.5, borderColor: colors.ink, alignItems: 'center', justifyContent: 'center', marginBottom: spacing[2] },
   shortcutLabel: { fontFamily: fonts.bodyBold, fontSize: 12, color: colors.ink, textAlign: 'center' },
-  soon: { fontFamily: fonts.body, fontSize: 10, color: colors.sand },
   section: { fontFamily: fonts.displayMedium, fontSize: 11, letterSpacing: 1.4, color: colors.ink, marginTop: spacing[5], marginBottom: spacing[3] },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing[3] },
   scenario: { width: '48%', minHeight: 76, backgroundColor: colors.bgSurface, padding: spacing[4], borderRadius: radius.lg, borderWidth: 1, borderColor: colors.cream },
