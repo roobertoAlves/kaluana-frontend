@@ -83,11 +83,6 @@ function wav(samples) {
   return Buffer.concat([header, data])
 }
 
-// --- Paisagens sonoras (RF16) -------------------------------------------------
-// Tudo a partir de ruído filtrado e modulado. As modulações têm período que
-// divide o loop, para o começo e o fim do arquivo baterem.
-
-/** Passa-baixa de um polo: quanto menor `a`, mais grave. */
 function lowpass(signal, a) {
   const out = new Float64Array(signal.length)
   let y = 0
@@ -103,14 +98,12 @@ const highpass = (signal, a) => {
   return signal.map((v, i) => v - low[i])
 }
 
-/** Rajada curta de ruído com queda exponencial (gota, estalo, folha). */
 function burst(out, at, length, amp, rnd, decay = 5) {
   for (let i = 0; i < length && at + i < out.length; i++) {
     out[at + i] += (rnd() * 2 - 1) * amp * Math.exp((-decay * i) / length)
   }
 }
 
-// Chuva: chiado agudo constante e muitas gotas pequenas.
 function rain(n, rnd) {
   const out = highpass(pink(n, rnd), 0.05).map((v) => v * 0.6)
   const drops = Math.round((n / RATE) * 45)
@@ -120,7 +113,6 @@ function rain(n, rnd) {
   return highpass(out, 0.02)
 }
 
-// Ondas: ruído grave que cresce e recua a cada 8 s.
 function waves(n, rnd, loop) {
   const body = lowpass(pink(n, rnd), 0.08)
   const foam = highpass(white(n, rnd), 0.3)
@@ -131,7 +123,6 @@ function waves(n, rnd, loop) {
   })
 }
 
-// Lareira: fundo grave e estalos esparsos de tamanhos variados.
 function fire(n, rnd) {
   const out = brown(n, rnd).map((v) => v * 0.9)
   const pops = Math.round((n / RATE) * 7)
@@ -142,7 +133,6 @@ function fire(n, rnd) {
   return out
 }
 
-// Floresta: vento que vai e volta (6 s e 4 s), folhas e um pássaro de vez em quando.
 function forest(n, rnd, loop) {
   const wind = lowpass(pink(n, rnd), 0.03)
   const out = wind.map((v, i) => {
@@ -172,7 +162,6 @@ for (const [name, make, seed] of [['white', white, 1], ['pink', pink, 2], ['brow
   console.log(`assets/sounds/${name}-noise.wav`)
 }
 
-// Ondas usam 16 s (duas ondas de 8 s); as outras, os mesmos 12 s dos ruídos.
 for (const [name, make, seed, seconds, peak] of [
   ['rain', rain, 11, 12, 0.45],
   ['waves', waves, 12, 16, 0.5],

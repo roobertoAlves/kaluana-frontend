@@ -14,7 +14,7 @@ import type { ReportSummary } from '../../features/reports/buildReport'
 import { eventsSource } from '../../services/eventsApi'
 import { checkInsSource } from '../../services/checkInsApi'
 import { listLinks } from '../../services/pairingApi'
-import { fetchLinkedReport, fetchOwnReport } from '../../services/reportsApi'
+import { fetchLinkedReport, fetchOwnReport, recordReportExport } from '../../services/reportsApi'
 import { exportReportPdf } from '../../services/reportPdf'
 import { errorMessage } from '../../services/http'
 import { colors, fonts, spacing } from '../../styles/tokens'
@@ -147,12 +147,18 @@ function LinkedReport({ onBack }: { onBack: () => void }) {
           Seu perfil: {RELATIONSHIP_LABEL[person.permissions.relationship].toLowerCase()}. Você vê só o que {person.name} autorizou para você.
         </Text>
       )}
-      {report && <ReportBody report={report} pdf />}
+      {report && (
+        <ReportBody
+          report={report}
+          pdf
+          onExported={() => (accessToken && selected ? recordReportExport(accessToken, selected, days).catch(() => {}) : undefined)}
+        />
+      )}
     </Screen>
   )
 }
 
-function ReportBody({ report, pdf }: { report: ReportSummary; pdf?: boolean }) {
+function ReportBody({ report, pdf, onExported }: { report: ReportSummary; pdf?: boolean; onExported?: () => void }) {
   const text = formatReport(report)
   const [busy, setBusy] = useState(false)
   const [pdfError, setPdfError] = useState<string | null>(null)
@@ -162,6 +168,7 @@ function ReportBody({ report, pdf }: { report: ReportSummary; pdf?: boolean }) {
     setPdfError(null)
     try {
       await exportReportPdf(report)
+      onExported?.()
     } catch {
       setPdfError('Não foi possível gerar o PDF neste aparelho. Tente compartilhar como texto.')
     } finally {

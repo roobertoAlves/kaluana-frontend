@@ -7,7 +7,6 @@ import { BackButton } from '../../components/ui/BackButton'
 import { AuthFooterLinks, AuthHero, AuthSubtitle } from '../../components/ui/AuthHero'
 import { CoordinateField } from '../../components/ui/CoordinateField'
 import { ArrowButton } from '../../components/ui/ArrowButton'
-import { SocialRow } from '../../components/ui/SocialRow'
 import { useAuth } from '../../context/AuthContext'
 import { login, ApiError } from '../../services/api'
 import { getApiBaseUrl } from '../../services/runtimeConfig'
@@ -88,8 +87,6 @@ export function LoginScreen({ navigation }: Props) {
           value={password}
           onChangeText={setPassword}
         />
-
-        <SocialRow verb="Entrar" />
 
         <ArrowButton label={submitting ? 'ENTRANDO...' : 'ENTRAR'} loading={submitting} onPress={handleSubmit} />
       </View>
