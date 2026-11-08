@@ -27,6 +27,7 @@ export type RootStackParamList = {
   Timer: undefined
   TimerDone: undefined
   Sounds: undefined
+  Guide: undefined
   DayReview: undefined
   Relax: { sound: Soundscape; minutes: number }
   Sleep: { sound: Soundscape; minutes: number }

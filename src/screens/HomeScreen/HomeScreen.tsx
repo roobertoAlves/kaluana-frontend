@@ -29,6 +29,7 @@ const SHORTCUTS: Shortcut[] = [
   { label: 'Tarefas', icon: 'list', go: (n) => n.navigate('Tasks') },
   { label: 'Plano do dia', icon: 'calendar', go: (n) => n.navigate('DayPlan') },
   { label: 'Check-in', icon: 'check', go: (n) => n.navigate('CheckIn') },
+  { label: 'Guia', icon: 'compass', go: (n) => n.navigate('Guide') },
   { label: 'Temporizador', icon: 'timer', go: (n) => n.navigate('TimerPlan') },
   { label: 'Sons', icon: 'sound', go: (n) => n.navigate('Sounds') },
   { label: 'Lembretes', icon: 'bell', go: (n) => n.navigate('Reminders') },
