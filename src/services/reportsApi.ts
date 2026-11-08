@@ -8,3 +8,7 @@ export function fetchOwnReport(token: string, days: number) {
 export function fetchLinkedReport(token: string, primaryUserId: string, days: number) {
   return apiRequest<ReportSummary>(`/api/reports/linked/${primaryUserId}?days=${days}`, { token })
 }
+
+export function recordReportExport(token: string, primaryUserId: string, days: number) {
+  return apiRequest<void>(`/api/reports/linked/${primaryUserId}/export?days=${days}`, { method: 'POST', token })
+}

@@ -19,6 +19,7 @@ export type RootStackParamList = {
   CheckIn: undefined
   Contacts: undefined
   Report: undefined
+  AccessLog: undefined
   EditProfile: undefined
   Tasks: undefined
   DayPlan: undefined
