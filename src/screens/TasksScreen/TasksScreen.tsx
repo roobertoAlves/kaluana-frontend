@@ -11,12 +11,13 @@ import { Sheet } from '../../components/ui/pickers/Sheet'
 import { useAuth } from '../../context/AuthContext'
 import { useTasks } from '../../hooks/useTasks'
 import { useAssistantStatus } from '../../hooks/useAssistantStatus'
-import { suggestSteps } from '../../services/assistantApi'
+import { parseTaskPhrase, suggestSteps } from '../../services/assistantApi'
 import { errorMessage } from '../../services/http'
 import { newId, todayKey } from '../../services/storage'
 import { GROUP_TITLE, doneConfirmation, focusSteps, groupTasks } from '../../features/tasks/taskModel'
 import { parseQuickTask } from '../../features/tasks/quickAdd'
-import type { QuickKind } from '../../features/tasks/quickAdd'
+import type { QuickKind, QuickParse } from '../../features/tasks/quickAdd'
+import { fromAssistant, shouldOfferAssistant, withoutKind } from '../../features/tasks/assistantParse'
 import { TaskRow } from './TaskRow'
 import { TaskFormSheet } from './TaskFormSheet'
 import { QuickChips } from './QuickChips'
@@ -39,7 +40,11 @@ export function TasksScreen({ navigation }: Props) {
   const [showDone, setShowDone] = useState(false)
   const [localError, setLocalError] = useState<string | null>(null)
   const today = todayKey()
-  const parsed = useMemo(() => parseQuickTask(title, new Date(), ignored), [title, ignored])
+  const [aiParsed, setAiParsed] = useState<QuickParse | null>(null)
+  const [interpreting, setInterpreting] = useState(false)
+  const ruleParsed = useMemo(() => parseQuickTask(title, new Date(), ignored), [title, ignored])
+  const parsed = aiParsed ?? ruleParsed
+  const offerAssistant = assistant.enabled && !!accessToken && !aiParsed && shouldOfferAssistant(title, ruleParsed)
 
   const groups = groupTasks(tasks.items, today)
   const pendingCount = tasks.items.filter((t) => !t.done).length
@@ -65,7 +70,26 @@ export function TasksScreen({ navigation }: Props) {
 
   function changeTitle(text: string) {
     setTitle(text)
+    setAiParsed(null)
     if (!text.trim()) setIgnored(new Set())
+  }
+
+  async function interpret() {
+    if (!accessToken || interpreting) return
+    setInterpreting(true)
+    setLocalError(null)
+    try {
+      setAiParsed(fromAssistant(await parseTaskPhrase(accessToken, title.trim(), today), new Date()))
+    } catch (e) {
+      setLocalError(errorMessage(e, 'O assistente não conseguiu interpretar agora. A tarefa pode ser salva como está.'))
+    } finally {
+      setInterpreting(false)
+    }
+  }
+
+  function undo(kind: QuickKind) {
+    if (aiParsed) setAiParsed(withoutKind(aiParsed, kind))
+    else setIgnored(new Set([...ignored, kind]))
   }
 
   async function save(task: Task) {
@@ -149,7 +173,14 @@ export function TasksScreen({ navigation }: Props) {
           <Icon name="plus" color={colors.white} />
         </PressableScale>
       </View>
-      <QuickChips parsed={parsed} onUndo={(kind) => setIgnored(new Set([...ignored, kind]))} />
+      <QuickChips parsed={parsed} onUndo={undo} />
+      {aiParsed && <Text style={styles.aiNote}>Interpretado pelo assistente. Confira antes de adicionar.</Text>}
+      {offerAssistant && (
+        <Pressable onPress={() => void interpret()} disabled={interpreting} accessibilityRole="button" hitSlop={8} style={styles.planLink}>
+          <Icon name="compass" size={18} />
+          <Text style={styles.planLinkText}>{interpreting ? 'Interpretando…' : 'Interpretar com o assistente'}</Text>
+        </Pressable>
+      )}
       <Pressable onPress={() => setForm({ mode: 'new' })} accessibilityRole="button" hitSlop={8} style={styles.planLink}>
         <Text style={styles.planLinkText}>Nova tarefa com detalhes (data, duração, microetapas)</Text>
       </Pressable>
@@ -209,6 +240,7 @@ export function TasksScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
+  aiNote: { fontFamily: fonts.body, fontSize: 12, color: colors.textSecondary, marginTop: spacing[1] },
   summary: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing[4], gap: spacing[3] },
   summaryText: { flex: 1, fontFamily: fonts.body, fontSize: 15, color: colors.textSecondary },
   addRow: { flexDirection: 'row', gap: spacing[2], alignItems: 'center' },
