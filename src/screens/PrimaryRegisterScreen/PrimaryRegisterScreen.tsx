@@ -7,7 +7,6 @@ import { BackButton } from '../../components/ui/BackButton'
 import { AuthFooterLinks, AuthHero } from '../../components/ui/AuthHero'
 import { CoordinateField } from '../../components/ui/CoordinateField'
 import { ArrowButton } from '../../components/ui/ArrowButton'
-import { SocialRow } from '../../components/ui/SocialRow'
 import { useAuth } from '../../context/AuthContext'
 import { registerPrimary, ApiError } from '../../services/api'
 import { isPendingConfirmation } from '../../types'
@@ -110,8 +109,6 @@ export function PrimaryRegisterScreen({ navigation }: Props) {
           value={form.password}
           onChangeText={(v) => update('password', v)}
         />
-
-        <SocialRow verb="Registrar" />
 
         <ArrowButton
           label={submitting ? 'CRIANDO...' : 'CRIAR CONTA'}
