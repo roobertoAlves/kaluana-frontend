@@ -1,10 +1,5 @@
 import { colors } from './tokens'
 
-/**
- * Temas (variáveis "Kaluana Tema" do Figma). O CLARO é o que está em uso.
- * O ESCURO fica reservado: mesmos nomes, ainda não ligado a nenhuma tela.
- * Para ativar no futuro, as telas passam a ler `useTheme()` em vez de `colors`.
- */
 export interface Theme {
   bg: string
   surface: string
@@ -25,7 +20,6 @@ export const lightTheme: Theme = {
   line: colors.cream,
 }
 
-/** Reservado: valores provisórios, a definir com o Figma ("Kaluana Tema · Escuro"). */
 export const darkTheme: Theme = {
   bg: '#152840',
   surface: '#1F3556',

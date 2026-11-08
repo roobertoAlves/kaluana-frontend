@@ -24,7 +24,6 @@
 .cornerBL { bottom: 12px; left: 12px; }
 .cornerBR { bottom: 12px; right: 12px; }
 
-/* ── Hero ── */
 .hero {
   padding: 80px 20px 32px;
   position: relative;
@@ -50,25 +49,13 @@
   right: 20px;
 }
 
-/* ── Options area ── */
 .optionsArea {
   display: flex;
   flex-direction: column;
   margin-top: 16px;
-  /* extra bottom padding so last block doesn't clip against screen edge */
   padding-bottom: 48px;
 }
 
-/*
-  CUT DEPTH = 28px
-  Every block:
-    - top-left starts 28px down  (diagonal top)
-    - bottom-left ends at 100%   (diagonal bottom goes up on right side)
-  
-  Overlap = 28px via margin-top: -28px on blocks 2 and 3.
-  This makes the bottom diagonal of block N align exactly
-  with the top diagonal of block N+1.
-*/
 .option {
   border: none;
   cursor: pointer;
@@ -88,26 +75,17 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  /* top padding accounts for the diagonal cut depth */
   padding: 36px 20px 0;
   height: 100%;
 }
 
-/* ── Block 1: Registrar (orange) ── */
-/* top: diagonal (left low, right high) | bottom: diagonal (left high, right low) */
 .optionOrange {
   background-color: var(--color-ember-bright);
   clip-path: polygon(
-    0 28px,          /* top-left: 28px down */
-    100% 0,          /* top-right: flush */
-    100% calc(100% - 28px), /* bottom-right: 28px up */
-    0 100%           /* bottom-left: flush */
-  );
+    0 28px,    100% 0,    100% calc(100% - 28px),    0 100%  );
   z-index: 3;
 }
 
-/* ── Block 2: Entrar (blue) ── */
-/* top matches orange bottom | bottom: diagonal same direction */
 .optionBlue {
   background-color: var(--color-ink);
   clip-path: polygon(
@@ -120,8 +98,6 @@
   z-index: 2;
 }
 
-/* ── Block 3: Emparelhar (dark) ── */
-/* top matches blue bottom | bottom: diagonal same direction */
 .optionDark {
   background-color: #152840;
   clip-path: polygon(
@@ -134,7 +110,6 @@
   z-index: 1;
 }
 
-/* ── Text ── */
 .optionNumber {
   font-family: var(--font-display);
   font-size: 11px;

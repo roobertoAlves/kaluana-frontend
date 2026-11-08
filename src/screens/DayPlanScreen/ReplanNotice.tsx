@@ -10,14 +10,12 @@ const MAX_LINES = 4
 
 interface Props {
   changes: PlanChange[]
-  /** Plano desatualizado com a reorganização automática desligada. */
   stale: boolean
   busy: boolean
   onDismiss: () => void
   onReplan: () => void
 }
 
-/** RF14: diz em poucas linhas o que mudou no plano (ou pergunta se pode reorganizar). */
 export function ReplanNotice({ changes, stale, busy, onDismiss, onReplan }: Props) {
   if (changes.length === 0 && !stale) return null
 

@@ -8,11 +8,6 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Splash'>
 
 const VIDEO_BACKGROUND = '#DFDACF'
 
-/**
- * Splash padrão, usada em todas as aberturas depois da primeira. Toca o
- * vídeo uma vez, com som, em tela cheia, e segue para a escolha de perfil
- * quando termina (ou ao toque).
- */
 export function SplashScreen({ navigation }: Props) {
   const goNext = useCallback(() => navigation.replace('ProfileSelection'), [navigation])
   const { player, finish } = useSplashVideo(require('../../../assets/splash/splashscreen.mp4'), goNext)

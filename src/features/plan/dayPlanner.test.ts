@@ -3,7 +3,6 @@ import assert from 'node:assert/strict'
 import type { Task } from '../../types/domain.ts'
 import { layout, nextSlot, order, planLocally } from './dayPlanner.ts'
 
-// Mesmos casos do DayPlannerTest do back-end: as duas versões precisam concordar.
 const DAY = '2026-11-02'
 const task = (title: string, priority: Task['priority'], minutes: number | null, dueDate: string | null = null): Task => ({
   id: title,

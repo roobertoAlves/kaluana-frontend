@@ -2,7 +2,6 @@ import type { Task } from '../types/domain'
 import type { CollectionSource } from '../hooks/useCollection'
 import { apiRequest } from './http'
 
-/** RF5 · /api/tasks. As rotas de microetapa devolvem a tarefa inteira atualizada. */
 const toBody = (t: Task) => ({
   title: t.title,
   priority: t.priority,
@@ -15,7 +14,6 @@ export const tasksSource: CollectionSource<Task> = {
   name: 'tasks',
   remote: {
     list: (token) => apiRequest<Task[]>('/api/tasks', { token }),
-    // Na criação, as microetapas já vão junto (ex.: sugeridas pelo assistente).
     create: (token, t) =>
       apiRequest<Task>('/api/tasks', { method: 'POST', token, body: { ...toBody(t), steps: t.steps.map((s) => s.text) } }),
     update: (token, t) => apiRequest<Task>(`/api/tasks/${t.id}`, { method: 'PUT', token, body: toBody(t) }),

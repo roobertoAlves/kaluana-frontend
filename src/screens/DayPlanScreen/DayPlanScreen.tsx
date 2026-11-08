@@ -36,11 +36,6 @@ const ENERGY_HINT: Record<number, string> = {
   5: 'Dia tranquilo: as tarefas importantes e longas vêm antes.',
 }
 
-/**
- * RF10/RF11/RF14: "o que faço agora e depois?" Linha do tempo de um dia (hoje
- * ou outro), com início e fim escolhidos no relógio. O plano de hoje se
- * reorganiza sozinho quando o dia muda.
- */
 export function DayPlanScreen({ navigation }: Props) {
   const tasks = useTasks()
   const { items: checkins } = useCollection<CheckIn>(checkInsSource)
@@ -48,7 +43,6 @@ export function DayPlanScreen({ navigation }: Props) {
   const today = todayKey()
   const [date, setDate] = useState(today)
   const isToday = date === today
-  // Hoje começa no próximo horário cheio de 5 min; outros dias, às 08:00.
   const [start, setStart] = useState(() => (nextSlot() > DEFAULT_START ? nextSlot() : DEFAULT_START))
   const [end, setEnd] = useState(DEFAULT_END)
   const [useAssistant, setUseAssistant] = useState(false)
@@ -66,7 +60,6 @@ export function DayPlanScreen({ navigation }: Props) {
 
   const now = isToday ? day.now : '00:00'
   const earliest = isToday ? nextSlot() : '00:00'
-  // Hoje não dá para começar no passado: o início acompanha o relógio.
   const effectiveStart = start < earliest ? earliest : start
 
   function changeDate(d: string) {

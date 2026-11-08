@@ -6,14 +6,9 @@ import { colors, fonts, spacing } from '../../styles/tokens'
 interface CoordinateFieldProps extends TextInputProps {
   coordinate: string
   label: string
-  /** Campos sobre a faixa azul usam texto e placeholder claros (como no base). */
   onDark?: boolean
 }
 
-/**
- * Campo "coordenada": código laranja (A1, B2...) + rótulo em caixa alta,
- * input sem caixa, só com linha laranja embaixo e placeholder em itálico.
- */
 export function CoordinateField({
   coordinate,
   label,

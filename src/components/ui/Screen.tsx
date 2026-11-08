@@ -7,12 +7,10 @@ interface ScreenProps {
   label: string
   title: string
   onBack?: () => void
-  /** Erro de API para mostrar logo abaixo do título (ex.: sem conexão). */
   error?: string | null
   children: ReactNode
 }
 
-/** Casca das telas internas: voltar, rótulo, título e rolagem com teclado. */
 export function Screen({ label, title, onBack, error, children }: ScreenProps) {
   const insets = useSafeAreaInsets()
   return (

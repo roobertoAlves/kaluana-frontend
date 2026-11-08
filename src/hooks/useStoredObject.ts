@@ -3,17 +3,11 @@ import { useAuth } from '../context/AuthContext'
 import { errorMessage } from '../services/http'
 import { readJson, writeJson } from '../services/storage'
 
-/** Como um objeto único (perfil, permissões...) é lido e salvo na API. */
 export interface ObjectRemote<T> {
   load: (token: string) => Promise<T>
   save: (token: string, value: T) => Promise<T>
 }
 
-/**
- * Objeto do usuário guardado no aparelho. Com `remote` e login, a API é a
- * fonte da verdade e o AsyncStorage vira cache; `update` só confirma a
- * mudança na tela depois que a API aceitou (devolve false se falhou).
- */
 export function useStoredObject<T>(name: string, initial: T, remote?: ObjectRemote<T>) {
   const { user, accessToken } = useAuth()
   const userId = user?.id ?? 'anon'

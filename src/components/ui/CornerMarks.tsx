@@ -10,7 +10,6 @@ interface CornerMarksProps {
 
 const INSET = 12
 
-/** Marcas de canto "+" (registro de impressão) do projeto base. */
 export function CornerMarks({ corners = ['tl', 'tr', 'bl', 'br'] }: CornerMarksProps) {
   const insets = useSafeAreaInsets()
 

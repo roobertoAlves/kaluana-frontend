@@ -4,27 +4,14 @@ import { AndroidImportance } from 'expo-notifications'
 import { nextFireTime } from '../features/reminders/reminderModel'
 import type { Reminder, ReminderInsistence } from '../types/domain'
 
-/**
- * Adaptador de notificações locais (RNF2) sobre o expo-notifications.
- * Todo o código nativo fica neste arquivo: trocar de biblioteca não afeta telas.
- * Funciona no build de desenvolvimento; no Expo Go, notificações locais podem
- * não estar disponíveis, então toda chamada falha de forma silenciosa.
- *
- * Insistência = notificações de repetição após a principal:
- *  LOW: nenhuma | MEDIUM: +5 e +10 min | HIGH: +2, +4, +6 e +8 min.
- */
-
 const CHANNEL_ID = 'lembretes'
 const FOLLOW_UPS: Record<ReminderInsistence, number[]> = { LOW: [], MEDIUM: [5, 10], HIGH: [2, 4, 6, 8] }
 
-// Com o app aberto, a notificação aparece como banner e toca o som.
 try {
   Notifications.setNotificationHandler({
     handleNotification: async () => ({ shouldShowBanner: true, shouldShowList: true, shouldPlaySound: true, shouldSetBadge: false }),
   })
-} catch {
-  // Sem módulo nativo (ex.: web): segue sem notificações.
-}
+} catch {}
 
 export async function ensureNotificationSetup(): Promise<boolean> {
   try {
@@ -40,7 +27,6 @@ export async function ensureNotificationSetup(): Promise<boolean> {
   }
 }
 
-// A regra do próximo disparo fica no modelo (testável); reexportada para a Home.
 export { nextFireTime }
 
 const idsFor = (r: Reminder) => [0, ...FOLLOW_UPS.HIGH].map((_, i) => `${r.id}:${i}`)
@@ -53,14 +39,12 @@ export async function cancelReminder(r: Reminder): Promise<void> {
   await cancel(idsFor(r))
 }
 
-/** Gatilho de um disparo: diário/semanal repete no mesmo horário; único dispara uma vez. */
 function triggerFor(r: Reminder, at: Date): Notifications.NotificationTriggerInput {
   const base = Platform.OS === 'android' ? { channelId: CHANNEL_ID } : {}
   if (r.frequency === 'DAILY') {
     return { ...base, type: Notifications.SchedulableTriggerInputTypes.DAILY, hour: at.getHours(), minute: at.getMinutes() }
   }
   if (r.frequency === 'WEEKLY') {
-    // weekday: 1 = domingo ... 7 = sábado
     return { ...base, type: Notifications.SchedulableTriggerInputTypes.WEEKLY, weekday: at.getDay() + 1, hour: at.getHours(), minute: at.getMinutes() }
   }
   return { ...base, type: Notifications.SchedulableTriggerInputTypes.DATE, date: at }
@@ -87,14 +71,10 @@ export async function scheduleReminder(r: Reminder): Promise<void> {
   )
 }
 
-/** Reagenda todos ao abrir o app (cobre reinício do aparelho e lembretes únicos vencidos). */
 export async function rescheduleAll(reminders: Reminder[]): Promise<void> {
   await Promise.all(reminders.map((r) => scheduleReminder(r).catch(() => {})))
 }
 
-// ---------------------------------------------------------------------------
-// Sessão do temporizador, adiar e toque na notificação
-// ---------------------------------------------------------------------------
 const SESSION_IDS = Array.from({ length: 12 }, (_, i) => `session:${i}`)
 
 async function fireAt(id: string, title: string, body: string, at: number, data: Record<string, string>) {
@@ -113,7 +93,6 @@ export async function cancelSessionAlerts(): Promise<void> {
   await cancel(SESSION_IDS)
 }
 
-/** Aviso de fim da sessão e, se pedido, de beber água a cada 20 min. */
 export async function scheduleSessionAlerts(task: string, endsAt: number, water: boolean): Promise<void> {
   await cancelSessionAlerts()
   const now = Date.now()
@@ -128,7 +107,6 @@ export async function scheduleSessionAlerts(task: string, endsAt: number, water:
   }
 }
 
-/** "Adiar 10 min" da tela de lembrete disparado. */
 export async function snoozeReminder(title: string, minutes = 10): Promise<void> {
   await ensureNotificationSetup()
   await fireAt(`snooze:${Date.now()}`, title, `Adiado por ${minutes} min.`, Date.now() + minutes * 60_000, { kind: 'reminder', title })
@@ -148,7 +126,6 @@ function toTap(n: Notifications.Notification | null | undefined): NotificationTa
   return { kind, title: String(data.title ?? content?.title ?? 'Lembrete'), reminderId: data.reminderId ? String(data.reminderId) : undefined }
 }
 
-/** Toque na notificação com o app aberto. Devolve a função de cancelamento. */
 export function listenNotificationTaps(onTap: (t: NotificationTap) => void): () => void {
   try {
     const sub = Notifications.addNotificationResponseReceivedListener((response) => {
@@ -161,7 +138,6 @@ export function listenNotificationTaps(onTap: (t: NotificationTap) => void): () 
   }
 }
 
-/** Toque que abriu o app a partir do fechado. */
 export async function getInitialTap(): Promise<NotificationTap | null> {
   try {
     const last = await Notifications.getLastNotificationResponseAsync()

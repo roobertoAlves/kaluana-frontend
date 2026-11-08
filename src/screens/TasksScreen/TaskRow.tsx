@@ -27,7 +27,6 @@ interface TaskRowProps {
   onSuggestSteps: () => Promise<string[] | null>
 }
 
-/** Uma tarefa: linha compacta; ao tocar, abre as microetapas e as ações. */
 export function TaskRow(props: TaskRowProps) {
   const { task, today, index, expanded } = props
   const [newStep, setNewStep] = useState('')

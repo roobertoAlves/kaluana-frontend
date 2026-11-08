@@ -16,7 +16,6 @@ type Props = NativeStackScreenProps<RootStackParamList, 'EventLog'>
 
 const CATEGORIES = (Object.keys(CATEGORY_LABEL) as EventCategory[]).map((c) => ({ value: c, label: CATEGORY_LABEL[c] }))
 
-/** RF1: registrar evento (categoria fixa, texto opcional, tag de urgência). */
 export function EventLogScreen({ navigation }: Props) {
   const { items, add, remove, error } = useCollection<LifeEvent>(eventsSource)
   const [category, setCategory] = useState<EventCategory>('SOBRECARGA')

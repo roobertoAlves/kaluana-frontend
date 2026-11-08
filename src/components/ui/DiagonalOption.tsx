@@ -10,22 +10,13 @@ interface DiagonalOptionProps {
   description: string
   color: string
   onPress: () => void
-  /** Posição na pilha: o primeiro bloco fica por cima dos seguintes. */
   index: number
-  /** Ação do bloco logo abaixo, para toques que caem no triângulo dele. */
   onPressNext?: () => void
 }
 
 export const OPTION_HEIGHT = 130
 export const OPTION_CUT = 28
 
-/**
- * Bloco de cor com cortes diagonais em cima e embaixo (clip-path do base).
- * Os blocos se sobrepõem em 28px para que a diagonal de baixo de um encaixe
- * na de cima do próximo. Como em RN o toque vale para o retângulo inteiro,
- * o bloco de cima repassa ao de baixo o toque que cai na área dele, e o
- * primeiro ignora toques no triângulo vazio do topo.
- */
 export function DiagonalOption({
   number,
   title,
@@ -45,9 +36,7 @@ export function DiagonalOption({
 
     if (onPressNext && locationY > bottomEdge) {
       onPressNext()
-    } else if (index === 0 && locationY < topEdge) {
-      // triângulo vazio acima do primeiro bloco
-    } else {
+    } else if (index === 0 && locationY < topEdge) {} else {
       onPress()
     }
   }

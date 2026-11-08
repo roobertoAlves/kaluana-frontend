@@ -9,11 +9,6 @@ interface ErrorToastProps {
   duration?: number
 }
 
-/**
- * Equivalente do ErrorToast do projeto base (que usa @radix-ui/react-toast,
- * inexistente em React Native): faixa vermelha na parte de baixo, entra
- * deslizando, some sozinha após `duration` e é anunciada por leitor de tela.
- */
 export function ErrorToast({ message, onDismiss, duration = 6000 }: ErrorToastProps) {
   const insets = useSafeAreaInsets()
   const [translateY] = useState(() => new Animated.Value(80))

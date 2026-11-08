@@ -9,24 +9,32 @@ export interface AuthenticatedUser {
   role: UserRole
   nickname?: string | null
   avatarColor?: string | null
+  
+  emailVerified?: boolean
 }
 
-/** A outra ponta de um emparelhamento (GET /api/pairing/links). */
 export interface LinkedUser {
   userId: string
   name: string
   role: UserRole
   linkedAt: string
-  /** RF8: o que este vínculo autoriza (o principal edita; o responsável só vê). */
   permissions?: LinkPermissions
 }
 
 export interface AuthResponse {
   accessToken: string
-  /** RNF4: troca o token de acesso vencido sem pedir login de novo. */
   refreshToken?: string
   user: AuthenticatedUser
 }
+
+
+export interface PendingConfirmation {
+  user: AuthenticatedUser
+}
+
+export type RegisterResponse = AuthResponse | PendingConfirmation
+
+export const isPendingConfirmation = (r: RegisterResponse): r is PendingConfirmation => !('accessToken' in r) || !r.accessToken
 
 export interface LoginPayload {
   email: string

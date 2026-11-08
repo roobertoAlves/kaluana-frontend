@@ -27,24 +27,34 @@ O `npm ci` instala exatamente as versões do `package-lock.json`. Use
 
 ## 3. Endereço da API
 
-O aplicativo lê o endereço da API da variável `EXPO_PUBLIC_API_BASE_URL`,
-no arquivo `.env`. Crie o seu a partir do modelo e ajuste o endereço:
+Não é preciso configurar nada quando a API roda no mesmo computador que o
+Expo. O aplicativo descobre sozinho o endereço desse computador (o mesmo que
+o celular usa para abrir o projeto pelo QR code) e chama a API na porta 8080.
+Isso funciona em qualquer máquina e rede, Windows ou Linux, sem editar IP.
+
+Quando a API está em outra máquina, há duas opções:
+
+- No próprio aplicativo: na tela de login, toque em "servidor: ... alterar",
+  digite o endereço (por exemplo `192.168.0.20`), use "Testar conexão" e
+  salve. Fica guardado no aparelho; "Usar automático" volta ao padrão.
+- Pelo arquivo `.env` (vale para todos os aparelhos):
 
 ```bash
 cp .env.example .env
 ```
 
 ```env
-EXPO_PUBLIC_API_BASE_URL=http://192.168.0.10:8080
+EXPO_PUBLIC_API_BASE_URL=http://192.168.0.20:8080
 ```
 
-- No celular, use o IP do computador que roda a API na rede local, nunca
-  `localhost` (no celular, `localhost` é o próprio celular).
-- No emulador Android, o computador é `http://10.0.2.2:8080`.
-- O valor entra no aplicativo quando o Metro inicia: depois de mudar o
-  `.env`, pare e inicie de novo.
-- Na API, a variável `FRONTEND_ORIGIN` precisa aceitar a origem do aplicativo
-  quando ele roda no navegador.
+Com `EXPO_PUBLIC_API_BASE_URL` preenchida, ela tem prioridade sobre o
+automático; deixe em branco para voltar a ele. O `.env` só é lido quando o
+Expo inicia: depois de mudar, reinicie com `npx expo start -c`. A porta pode
+ser trocada em `EXPO_PUBLIC_API_PORT` (padrão 8080).
+
+O celular nunca alcança a API por `localhost`, porque no celular
+`localhost` é o próprio celular. Por isso o endereço precisa ser o IP do
+computador na rede (o automático já faz isso).
 
 ## 4. Como rodar no celular
 
@@ -155,9 +165,14 @@ montagem do plano do dia, sessão de foco, tarefas, lembretes e relatório.
 
 ## 9. Problemas comuns
 
-- "Erro de conexão com ...": a API não está no ar ou o endereço em
-  `EXPO_PUBLIC_API_BASE_URL` está errado. Confira com
-  `http://<ip>:8080/actuator/health` no navegador do celular.
+- "Não foi possível conectar à API em ...": a mensagem mostra o endereço
+  usado. Confira se a API está no ar (`docker compose ps` no back-end), se o
+  celular está na mesma rede Wi-Fi do computador e se a porta 8080 está
+  liberada no firewall. Para testar, abra `http://<ip>:8080/actuator/health`
+  no navegador do celular, ou use "Testar conexão" em "servidor: ... alterar".
+- O endereço automático virou `localhost`: acontece com
+  `npx expo start --tunnel`. Use o modo normal (sem túnel) ou informe o
+  endereço em "servidor: ... alterar".
 - O QR code não abre no Expo Go: confira se o terminal mostra "Using Expo
   Go" (aperte `s` para trocar) e se o Expo Go do celular é compatível com o
   SDK 58 (atualize pela loja).

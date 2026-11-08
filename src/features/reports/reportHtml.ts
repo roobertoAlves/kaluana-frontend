@@ -2,12 +2,6 @@ import type { EventCategory } from '../../types/domain'
 import type { ReportSummary } from './buildReport.ts'
 import { CATEGORY_LABEL, LEVEL_LABEL, PRIORITY_LABEL, RELATIONSHIP_LABEL, REPORT_DISCLAIMER, fmtDateTime, fmtDay } from './buildReport.ts'
 
-/**
- * HTML do relatório em PDF (RF7/RF8). O especialista vinculado gera no app
- * (expo-print) com tudo que a pessoa autorizou para ele, e nada além disso:
- * as seções vêm do servidor já filtradas. Sem pontuação nem interpretação.
- */
-
 const escape = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
 

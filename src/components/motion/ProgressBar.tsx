@@ -3,7 +3,6 @@ import { Animated, StyleSheet, View } from 'react-native'
 import { colors } from '../../styles/tokens'
 import { motion, useReducedMotion } from './useReducedMotion'
 
-/** Barra fina de progresso (0 a 1), animada ao mudar. Usada nas microetapas. */
 export function ProgressBar({ value, color = colors.sageBright }: { value: number; color?: string }) {
   const reduced = useReducedMotion()
   const [width] = useState(() => new Animated.Value(value))
